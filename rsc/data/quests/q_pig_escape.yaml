@@ -1,0 +1,20 @@
+quest_id: q_pig_escape
+title: 말랑돼지 탈출
+quest_type: quiz
+main_location_id: east_farm
+involves:
+- minmin_lady
+- patrol_leader_rio
+- mage_lumi
+- chief_rowan
+required_clues:
+- clue_pig_tracks
+- clue_glittering_powder
+answer_truth_id: truth_spore_scent_attraction
+states:
+- not_started
+- in_progress
+- hint_1_given
+- hint_2_given
+- ready_to_answer
+- solved

@@ -1,0 +1,50 @@
+events:
+- event_id: event_glowing_mushroom
+  name: 몽실버섯 발광 변화
+  summary: 몽실버섯이 밤과 밝은 달빛 아래에서 평소보다 강하게 빛난다.
+  location_ids:
+  - whispering_forest_entrance
+  related_quest_ids:
+  - q_glowing_mushroom
+  truth_ids:
+  - truth_moonwell_mana_cycle
+- event_id: event_pig_escape
+  name: 말랑돼지 탈출
+  summary: 말랑돼지들이 먹이통이 가득 차 있어도 울타리를 넘어 숲 방향으로 움직인다.
+  location_ids:
+  - east_farm
+  - whispering_forest_entrance
+  related_quest_ids:
+  - q_pig_escape
+  truth_ids:
+  - truth_spore_scent_attraction
+- event_id: event_jelly_color_change
+  name: 방울젤리 색 변화
+  summary: 방울젤리들이 평소보다 진한 색을 띠며 숲 입구 쪽에서 변화가 자주 관찰된다.
+  location_ids:
+  - soft_field
+  - whispering_forest_entrance
+  related_quest_ids:
+  - q_jelly_color
+  truth_ids:
+  - truth_moonwell_mana_cycle
+- event_id: event_changed_signpost
+  name: 숲길 표지판 변경
+  summary: 속삭임 숲 입구의 표지판이 반복적으로 바뀌고, 주변에 뿌리 자국과 나뭇조각이 남는다.
+  location_ids:
+  - whispering_forest_entrance
+  related_quest_ids:
+  - q_changed_signpost
+  truth_ids:
+  - truth_stump_followed_spores
+- event_id: event_spore_night_pattern
+  name: 포자의 밤 흐름
+  summary: 여러 작은 사건이 밤, 숲 방향, 포자, 달빛 샘터의 마나 흐름으로 연결된다.
+  location_ids:
+  - hazel_square
+  - whispering_forest_entrance
+  - moonlight_spring
+  related_quest_ids:
+  - q_main_spore_night
+  truth_ids:
+  - truth_moonwell_mana_cycle

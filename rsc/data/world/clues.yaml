@@ -1,0 +1,58 @@
+clues:
+- clue_id: clue_bright_mushroom
+  name: 강하게 빛나는 몽실버섯
+  hint_level: 1
+  sensitivity: low
+  found_at: whispering_forest_entrance
+  points_to:
+  - truth_moonwell_mana_cycle
+- clue_id: clue_moonlit_night
+  name: 달 밝은 밤
+  hint_level: 1
+  sensitivity: low
+  found_at: whispering_forest_entrance
+  points_to:
+  - truth_moonwell_mana_cycle
+- clue_id: clue_pig_tracks
+  name: 숲 방향으로 이어진 말랑돼지 발자국
+  hint_level: 1
+  sensitivity: low
+  found_at: east_farm
+  points_to:
+  - truth_spore_scent_attraction
+- clue_id: clue_glittering_powder
+  name: 반짝이는 가루
+  hint_level: 2
+  sensitivity: medium
+  found_at: east_farm
+  points_to:
+  - truth_spore_scent_attraction
+  - truth_moonwell_mana_cycle
+- clue_id: clue_jelly_color_change
+  name: 방울젤리 색 변화
+  hint_level: 2
+  sensitivity: medium
+  found_at: soft_field
+  points_to:
+  - truth_moonwell_mana_cycle
+- clue_id: clue_changed_signpost
+  name: 바뀐 숲길 표지판
+  hint_level: 1
+  sensitivity: low
+  found_at: whispering_forest_entrance
+  points_to:
+  - truth_stump_followed_spores
+- clue_id: clue_root_marks
+  name: 뿌리 자국과 나뭇조각
+  hint_level: 2
+  sensitivity: medium
+  found_at: whispering_forest_entrance
+  points_to:
+  - truth_stump_followed_spores
+- clue_id: clue_mana_reaction
+  name: 마나 반응 흔적
+  hint_level: 2
+  sensitivity: medium
+  found_at: magic_shop
+  points_to:
+  - truth_moonwell_mana_cycle
