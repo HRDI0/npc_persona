@@ -1,0 +1,21 @@
+roles:
+- role_id: farmer
+  description: 농장, 작물, 생활 소문, 생물 습성에 밝은 역할
+- role_id: knight
+  description: 마을 경비, 순찰 기록, 몬스터 출몰 정보에 밝은 역할
+- role_id: mage
+  description: 마법 현상, 포자, 마나, 달빛 샘터에 밝은 역할
+- role_id: lord
+  description: 마을 전체 사건, 보고서, 비밀 정보에 접근 가능한 관리자 역할
+knowledge_types:
+- personal_history
+- farm_life
+- farm_observation
+- patrol_log
+- monster_report
+- mana_lore
+- magic_spore
+- village_report
+- confidential_history
+- confidential_truth
+- location_lore

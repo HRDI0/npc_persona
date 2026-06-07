@@ -1,0 +1,21 @@
+quest_id: q_main_spore_night
+title: 포자의 밤
+quest_type: main_inference
+main_location_id: hazel_square
+involves:
+- minmin_lady
+- patrol_leader_rio
+- mage_lumi
+- chief_rowan
+required_clues:
+- clue_bright_mushroom
+- clue_pig_tracks
+- clue_jelly_color_change
+- clue_changed_signpost
+- clue_glittering_powder
+answer_truth_id: truth_moonwell_mana_cycle
+states:
+- not_started
+- in_progress
+- ready_to_answer
+- solved
