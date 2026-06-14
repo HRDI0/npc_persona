@@ -2,14 +2,15 @@ quest_id: q_glowing_mushroom
 title: 빛나는 몽실버섯
 quest_type: quiz
 main_location_id: whispering_forest_entrance
-involves:
+involved_npc_ids:
 - minmin_lady
 - mage_lumi
 - chief_rowan
-required_clues:
+required_clue_ids:
 - clue_bright_mushroom
 - clue_moonlit_night
-answer_truth_id: truth_moonwell_mana_cycle
+answer_truth_ids:
+- truth_moonwell_mana_cycle
 states:
 - not_started
 - in_progress
@@ -17,3 +18,91 @@ states:
 - hint_2_given
 - ready_to_answer
 - solved
+story_expansion:
+  episode_order: 1
+  quest_role: intro_investigation
+  type: investigation_quiz
+  summary: 몽실버섯이 밤과 달빛에 따라 더 밝아지는 현상을 관찰하고, 생활 관찰과 마법 분석을 분리해 수집하는 첫 조사 퀘스트.
+  main_location_ids:
+  - whispering_forest_entrance
+  - east_farm
+  - magic_shop
+  optional_clue_ids:
+  - clue_mana_reaction
+  story_purpose:
+    summary: 플레이어가 한 NPC의 말만으로 결론을 내리지 않고 관찰과 분석을 함께 모으도록 만든다.
+    player_goal: 빛나는 버섯의 변화가 단순한 소문인지 확인한다.
+    emotional_tone: 낯선 현상을 조심스럽게 확인하는 초반 미스터리.
+  quest_steps:
+  - step_id: observe_light
+    title: 관찰
+    objective: 숲 입구에서 평소보다 밝은 버섯을 확인한다.
+    npc_id: minmin_lady
+    location_id: whispering_forest_entrance
+    player_observation: 밤에만 눈에 띄는 빛과 주변 가루를 본다.
+    npc_hint: 낮과 밤을 나누어 보렴.
+    unlocked_clue_ids:
+    - clue_bright_mushroom
+    next_step_condition: 빛 변화를 직접 확인
+  - step_id: compare_moon
+    title: 힌트
+    objective: 달이 밝은 밤과 흐린 밤의 차이를 묻는다.
+    npc_id: minmin_lady
+    location_id: east_farm
+    player_observation: 민민 부인의 기억이 달 밝은 밤에 집중된다.
+    npc_hint: 달이 밝으면 더 보였단다.
+    unlocked_clue_ids:
+    - clue_moonlit_night
+    next_step_condition: 달빛 조건 확인
+  - step_id: ask_lumi
+    title: 단서
+    objective: 루미에게 포자와 반응 가능성을 묻는다.
+    npc_id: mage_lumi
+    location_id: magic_shop
+    player_observation: 포자가 외부 자극에 반응할 수 있다는 가설을 듣는다.
+    npc_hint: 가능성은 있어. 아직 답은 아니고.
+    unlocked_clue_ids:
+    - clue_mana_reaction
+    next_step_condition: 마법적 가설 확보
+  - step_id: report_rowan
+    title: 추론
+    objective: 로완에게 관찰과 가설을 함께 보고한다.
+    npc_id: chief_rowan
+    location_id: hazel_square
+    player_observation: 로완은 단서가 더 필요하다고 판단한다.
+    npc_hint: 하나의 빛만 보지 말고 다른 변화도 살피게.
+    unlocked_clue_ids: []
+    next_step_condition: 다음 조사로 연결
+  wrong_hypotheses:
+  - hypothesis_id: whm_bad_weather
+    text: 날씨 때문에 버섯이 밝아졌다.
+    why_it_seems_possible: 밤과 달빛 조건이 겉보기에는 날씨처럼 보인다.
+    disproof_clue_ids:
+    - clue_mana_reaction
+    npc_reaction: 루미는 날씨만으로는 설명이 부족하다고 말한다.
+  hint_flow:
+    hint_0: 낮과 밤을 나누어 관찰한다.
+    hint_1: 달이 밝은 밤의 기록을 확인한다.
+    hint_2: 마법 잡화점에서 반응 흔적을 묻는다.
+    final_hint: 빛, 달빛, 반응 흔적을 하나의 조건으로 묶어 본다.
+  access_control_notes:
+    farmer_view: 민민 부인은 밤에 더 강한 빛과 달 밝은 날의 차이만 생활 관찰로 말한다.
+    mage_view: 루미는 포자와 마나 반응 가능성을 hint 2 수준의 가설로만 말한다.
+    lord_view: 로완은 관찰과 가설을 정리하되 이 퀘스트 단독으로 최종 원인을 확정하지 않는다.
+    forbidden_before_reveal: 달빛 샘터의 마나 주기 강화라는 최종 truth 이름을 직접 말하지 않는다.
+  answer_reveal_policy:
+    can_reveal_truth_before_required_clues: false
+    required_before_reveal:
+    - clue_bright_mushroom
+    - clue_moonlit_night
+    npc_allowed_to_reveal:
+    - chief_rowan
+    npc_not_allowed_to_reveal:
+    - minmin_lady
+    - patrol_leader_rio
+    - mage_lumi
+  completion:
+    player_answer_condition: required_clue_ids가 모두 확인되고 플레이어가 단서 연결을 말한다.
+    success_dialogue: 단서가 충분히 모였을 때만 NPC가 추론을 인정한다.
+    partial_success_dialogue: 방향은 맞지만 빠진 단서를 다시 확인하게 한다.
+    after_effect: 마을은 즉시 크게 변하지 않지만 NPC별 후속 대사가 열린다.

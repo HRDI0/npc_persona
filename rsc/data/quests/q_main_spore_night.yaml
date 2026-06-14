@@ -2,20 +2,135 @@ quest_id: q_main_spore_night
 title: 포자의 밤
 quest_type: main_inference
 main_location_id: hazel_square
-involves:
+involved_npc_ids:
 - minmin_lady
 - patrol_leader_rio
 - mage_lumi
 - chief_rowan
-required_clues:
+required_clue_ids:
 - clue_bright_mushroom
 - clue_pig_tracks
 - clue_jelly_color_change
 - clue_changed_signpost
 - clue_glittering_powder
-answer_truth_id: truth_moonwell_mana_cycle
+answer_truth_ids:
+- truth_moonwell_mana_cycle
 states:
 - not_started
 - in_progress
 - ready_to_answer
 - solved
+story_expansion:
+  episode_order: 5
+  quest_role: final_synthesis
+  type: main_inference
+  summary: 앞선 네 사건의 빛, 발자국, 색 변화, 표지판 단서를 종합해 하나의 흐름을 추론하는 최종 정리 퀘스트.
+  main_location_ids:
+  - hazel_square
+  - whispering_forest_entrance
+  - magic_shop
+  - moonlight_spring
+  optional_clue_ids:
+  - clue_mana_reaction
+  - clue_root_marks
+  story_purpose:
+    summary: 각 NPC가 가진 부분 지식을 한 번에 합쳐도, 단서 조건 전에는 정답을 직접 주지 않게 한다.
+    player_goal: 네 가지 작은 사건이 같은 방향과 조건을 가리키는지 정리한다.
+    emotional_tone: 작은 관찰들이 하나의 그림으로 맞물리는 조용한 해결감.
+  quest_steps:
+  - step_id: gather_reports
+    title: 관찰
+    objective: 민민, 리오, 루미의 보고를 정리한다.
+    npc_id: chief_rowan
+    location_id: hazel_square
+    player_observation: 생활 관찰, 물리 증거, 마법 가설을 한자리에 둔다.
+    npc_hint: 각자 본 것이 다르다는 점을 잊지 말게.
+    unlocked_clue_ids: []
+    next_step_condition: 보고 수집
+  - step_id: align_direction
+    title: 힌트
+    objective: 사건들이 어느 방향을 가리키는지 비교한다.
+    npc_id: patrol_leader_rio
+    location_id: hazel_square
+    player_observation: 발자국과 표지판 사건이 숲 입구를 가리킨다.
+    npc_hint: 방향이 반복된다.
+    unlocked_clue_ids:
+    - clue_pig_tracks
+    - clue_changed_signpost
+    next_step_condition: 방향성 확인
+  - step_id: align_reaction
+    title: 단서
+    objective: 빛과 색 변화, 반응 흔적을 비교한다.
+    npc_id: mage_lumi
+    location_id: magic_shop
+    player_observation: 버섯, 방울젤리, 가루가 같은 흐름 후보가 된다.
+    npc_hint: 셋을 따로 보지 마.
+    unlocked_clue_ids:
+    - clue_bright_mushroom
+    - clue_jelly_color_change
+    - clue_mana_reaction
+    next_step_condition: 반응성 확인
+  - step_id: test_answer
+    title: 추론
+    objective: 필요 단서가 모였는지 확인하고 답을 말한다.
+    npc_id: chief_rowan
+    location_id: hazel_square
+    player_observation: 로완은 플레이어의 추론이 단서와 맞는지 검토한다.
+    npc_hint: 단서가 모였다면 이제 말해 보게.
+    unlocked_clue_ids: []
+    next_step_condition: 필수 단서 충족
+  - step_id: close_case
+    title: 완료
+    objective: 사건 후 NPC들의 역할을 정리한다.
+    npc_id: chief_rowan
+    location_id: hazel_square
+    player_observation: 각 NPC가 아는 범위를 지킨 채 해결 후 반응을 말한다.
+    npc_hint: 정답보다 중요한 것은 관찰을 잇는 법일세.
+    unlocked_clue_ids: []
+    next_step_condition: 완료
+  wrong_hypotheses:
+  - hypothesis_id: single_culprit_only
+    text: 한 명의 장난이나 한 사건만으로 모든 일이 벌어졌다.
+    why_it_seems_possible: 표지판 사건만 보면 장난처럼 보인다.
+    disproof_clue_ids:
+    - clue_bright_mushroom
+    - clue_pig_tracks
+    - clue_jelly_color_change
+    npc_reaction: 로완은 서로 다른 증거가 같은 시기와 방향에 모인다고 정리한다.
+  - hypothesis_id: pure_magic_only
+    text: 마법 현상 하나가 모든 행동을 직접 지배했다.
+    why_it_seems_possible: 빛과 반응 흔적이 강하게 보인다.
+    disproof_clue_ids:
+    - clue_pig_tracks
+    - clue_root_marks
+    npc_reaction: 리오는 실제 움직임과 흔적을 빼면 설명이 불완전하다고 말한다.
+  hint_flow:
+    hint_0: 네 사건을 따로 보지 않는다.
+    hint_1: 방향과 시간 조건을 비교한다.
+    hint_2: 생물 반응과 물리 흔적을 함께 본다.
+    final_hint: 필수 단서가 모였을 때만 최종 추론을 말한다.
+  access_control_notes:
+    farmer_view: 민민 부인은 생활 관찰과 농장 피해만 제공하고 최종 원인을 말하지 않는다.
+    knight_view: 리오는 방향성과 물리 흔적을 정리하지만 마법 원리는 설명하지 않는다.
+    mage_view: 루미는 반응 비교 노트로 가능성을 말하되 종합 결론은 로완에게 넘긴다.
+    lord_view: 로완은 `ready_to_answer` 또는 `solved` 상태에서만 answer_sensitive chunk로 최종 대조를 말한다.
+    forbidden_before_reveal: 모든 필수 단서가 모이기 전에는 달빛, 포자, 생물 반응의 최종 연결을 공개하지 않는다.
+  answer_reveal_policy:
+    can_reveal_truth_before_required_clues: false
+    required_before_reveal:
+    - clue_bright_mushroom
+    - clue_pig_tracks
+    - clue_jelly_color_change
+    - clue_changed_signpost
+    - clue_glittering_powder
+    npc_allowed_to_reveal:
+    - chief_rowan
+    npc_not_allowed_to_reveal:
+    - minmin_lady
+    - patrol_leader_rio
+    - mage_lumi
+  completion:
+    player_answer_condition: required_clue_ids가 모두 확인되고 플레이어가 단서 연결을 말한다.
+    success_dialogue: 단서가 충분히 모였을 때만 NPC가 추론을 인정한다.
+    partial_success_dialogue: 방향은 맞지만 빠진 단서를 다시 확인하게 한다.
+    after_effect: 마을은 즉시 크게 변하지 않지만 NPC별 후속 대사가 열린다.

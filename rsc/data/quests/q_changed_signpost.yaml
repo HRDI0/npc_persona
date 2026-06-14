@@ -2,14 +2,15 @@ quest_id: q_changed_signpost
 title: 바뀐 숲길 표지판
 quest_type: quiz
 main_location_id: whispering_forest_entrance
-involves:
+involved_npc_ids:
 - patrol_leader_rio
 - mage_lumi
 - chief_rowan
-required_clues:
+required_clue_ids:
 - clue_changed_signpost
 - clue_root_marks
-answer_truth_id: truth_stump_followed_spores
+answer_truth_ids:
+- truth_stump_followed_spores
 states:
 - not_started
 - in_progress
@@ -17,3 +18,91 @@ states:
 - hint_2_given
 - ready_to_answer
 - solved
+story_expansion:
+  episode_order: 4
+  quest_role: misdirection_check
+  type: investigation_quiz
+  summary: 반복적으로 바뀐 표지판을 장난으로 단정하지 않고, 사람 발자국이 없는 현장과 뿌리 자국을 확인한다.
+  main_location_ids:
+  - whispering_forest_entrance
+  - training_ground
+  - hazel_square
+  optional_clue_ids:
+  - clue_glittering_powder
+  story_purpose:
+    summary: 플레이어가 보기 쉬운 용의자를 만들기보다 물리적 반증을 따라가게 한다.
+    player_goal: 표지판 변경의 실제 단서를 현장에서 확인한다.
+    emotional_tone: 장난처럼 보이는 사건이 다른 변화와 이어지는 느낌.
+  quest_steps:
+  - step_id: inspect_sign
+    title: 관찰
+    objective: 숲 입구 표지판이 바뀐 상태를 본다.
+    npc_id: patrol_leader_rio
+    location_id: whispering_forest_entrance
+    player_observation: 표지판 방향이 평소와 다르다.
+    npc_hint: 표지판만 보지 말고 주변을 봐라.
+    unlocked_clue_ids:
+    - clue_changed_signpost
+    next_step_condition: 표지판 확인
+  - step_id: search_ground
+    title: 힌트
+    objective: 표지판 주변 발자국을 찾는다.
+    npc_id: patrol_leader_rio
+    location_id: whispering_forest_entrance
+    player_observation: 사람 발자국 대신 뿌리 자국과 나뭇조각이 보인다.
+    npc_hint: 사람이 한 흔적은 아니다.
+    unlocked_clue_ids:
+    - clue_root_marks
+    next_step_condition: 뿌리 자국 확인
+  - step_id: ask_rumor
+    title: 단서
+    objective: 민민 부인에게 숲속 생물 소문을 묻는다.
+    npc_id: minmin_lady
+    location_id: east_farm
+    player_observation: 장난기 많은 숲속 생물 이야기를 듣지만 확정하지 않는다.
+    npc_hint: 소문은 소문일 뿐이란다.
+    unlocked_clue_ids: []
+    next_step_condition: 소문과 증거 분리
+  - step_id: connect_spore
+    title: 추론
+    objective: 루미에게 생물 반응 가능성을 묻는다.
+    npc_id: mage_lumi
+    location_id: magic_shop
+    player_observation: 포자 주변에서 생물이 민감해질 수 있다는 가능성을 듣는다.
+    npc_hint: 가능성은 있지만 현장 단서가 먼저야.
+    unlocked_clue_ids: []
+    next_step_condition: 다음 종합으로 연결
+  wrong_hypotheses:
+  - hypothesis_id: children_prank
+    text: 아이들이 장난으로 표지판을 돌렸다.
+    why_it_seems_possible: 마을 안의 작은 장난처럼 보인다.
+    disproof_clue_ids:
+    - clue_root_marks
+    npc_reaction: 리오는 사람 발자국이 없다는 점을 강조한다.
+  hint_flow:
+    hint_0: 표지판 방향만 보지 않는다.
+    hint_1: 발자국과 주변 파편을 확인한다.
+    hint_2: 소문과 물리 증거를 구분한다.
+    final_hint: 사람 장난이 아니라 숲 방향의 변화와 연결해 본다.
+  access_control_notes:
+    farmer_view: 민민 부인은 꼬마그루터기 소문을 말할 수 있지만 범인으로 확정하지 않는다.
+    knight_view: 리오는 사람 발자국 부재, 뿌리 자국, 나뭇조각만 증거로 말한다.
+    mage_view: 루미는 생물이 포자 주변 변화에 민감해졌을 가능성만 제시한다.
+    lord_view: 로완은 필수 단서 전에는 표지판 사건의 원인을 확정하지 않는다.
+    forbidden_before_reveal: 꼬마그루터기가 포자 반응을 따라 움직였다는 truth를 단서 전에는 말하지 않는다.
+  answer_reveal_policy:
+    can_reveal_truth_before_required_clues: false
+    required_before_reveal:
+    - clue_changed_signpost
+    - clue_root_marks
+    npc_allowed_to_reveal:
+    - chief_rowan
+    npc_not_allowed_to_reveal:
+    - minmin_lady
+    - patrol_leader_rio
+    - mage_lumi
+  completion:
+    player_answer_condition: required_clue_ids가 모두 확인되고 플레이어가 단서 연결을 말한다.
+    success_dialogue: 단서가 충분히 모였을 때만 NPC가 추론을 인정한다.
+    partial_success_dialogue: 방향은 맞지만 빠진 단서를 다시 확인하게 한다.
+    after_effect: 마을은 즉시 크게 변하지 않지만 NPC별 후속 대사가 열린다.

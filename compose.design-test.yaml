@@ -1,0 +1,81 @@
+name: hazel_design_test
+
+services:
+  neo4j:
+    image: neo4j:5
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-admin2026}
+    ports:
+      - "127.0.0.1:17474:7474"
+      - "127.0.0.1:17687:7687"
+    volumes:
+      - hazel_design_test_neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u \"${NEO4J_USER:-neo4j}\" -p \"${NEO4J_PASSWORD:-admin2026}\" \"RETURN 1\""]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+
+  streamlit:
+    build: .
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: ${NEO4J_USER:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-admin2026}
+      VLLM_URL: http://vllm:8000/v1/chat/completions
+      MODEL_NAME: ${MODEL_NAME:-google/gemma-4-E2B-it}
+    ports:
+      - "127.0.0.1:18501:8501"
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      vllm:
+        condition: service_healthy
+
+  vllm:
+    profiles:
+      - gpu
+    image: vllm/vllm-openai:latest
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+      interval: 15s
+      timeout: 10s
+      retries: 60
+      start_period: 10m
+    command:
+      - --model
+      - /models/gemma-4-E2B-it
+      - --served-model-name
+      - google/gemma-4-E2B-it
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --dtype
+      - bfloat16
+      - --trust-remote-code
+      - --gpu-memory-utilization
+      - ${VLLM_GPU_MEMORY_UTILIZATION:-0.9}
+      - --max-model-len
+      - ${VLLM_MAX_MODEL_LEN:-2048}
+      - --enforce-eager
+    ports:
+      - "127.0.0.1:18000:8000"
+    volumes:
+      - ${LOCAL_MODEL_DIR:-./models/google-gemma-4-E2B-it}:/models/gemma-4-E2B-it:ro
+      - ${HF_CACHE_DIR:-./.hf-cache}:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+
+volumes:
+  hazel_design_test_neo4j_data:

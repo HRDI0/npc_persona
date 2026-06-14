@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Optional
+from typing import cast
 
 import requests
 import streamlit as st
@@ -13,10 +13,10 @@ from neo4j import GraphDatabase
 
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "admin2026")
 
 VLLM_URL = os.getenv("VLLM_URL", "http://localhost:8000/v1/chat/completions")
-MODEL_NAME = os.getenv("MODEL_NAME", "google/gemma-4-E4B")
+MODEL_NAME = os.getenv("MODEL_NAME", "google/gemma-4-E2B-it")
 
 DEFAULT_NPC_ID = "minmin_lady"
 DEFAULT_PLAYER_ROLE = "farmer"
@@ -68,7 +68,7 @@ def get_neo4j_driver():
     )
 
 
-def get_npc_profile(npc_id: str) -> dict:
+def get_npc_profile(npc_id: str) -> dict[str, object]:
     query = """
     MATCH (n:NPC {npc_id: $npc_id})
     RETURN
@@ -95,21 +95,18 @@ def get_npc_profile(npc_id: str) -> dict:
 def get_allowed_chunks(
     npc_id: str,
     player_role: str,
-    quest_id: Optional[str],
+    quest_id: str | None,
     quest_state: str,
     allowed_hint_level: int,
     limit: int = 5,
-) -> list[dict]:
+) -> list[dict[str, object]]:
     query = """
     MATCH (:NPC {npc_id: $npc_id})-[:KNOWS]->(k:KnowledgeChunk)
     WHERE
       ($quest_id IS NULL OR k.quest_id = $quest_id OR k.quest_id IS NULL)
       AND $player_role IN k.allowed_roles
-      AND (
-        k.answer_sensitive = false
-        OR $quest_state IN ["ready_to_answer", "solved"]
-        OR k.hint_level <= $allowed_hint_level
-      )
+      AND k.hint_level <= $allowed_hint_level
+      AND (k.answer_sensitive = false OR $quest_state IN ["ready_to_answer", "solved"])
     RETURN
       k.chunk_id AS chunk_id,
       k.title AS title,
@@ -148,11 +145,17 @@ def bullet_list(items: list[str]) -> str:
     return "\n".join(f"- {item}" for item in items)
 
 
+def string_list(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in cast(list[object], value) if isinstance(item, str)]
+
+
 def build_prompt(
-    npc: dict,
-    chunks: list[dict],
+    npc: dict[str, object],
+    chunks: list[dict[str, object]],
     user_message: str,
-    quest_id: Optional[str],
+    quest_id: str | None,
     quest_state: str,
     player_role: str,
     allowed_hint_level: int,
@@ -179,22 +182,22 @@ name: {npc.get("name")}
 role: {npc.get("role")}
 
 [성격]
-{bullet_list(npc.get("personality") or [])}
+{bullet_list(string_list(npc.get("personality")))}
 
 [말투]
-{bullet_list(npc.get("speech_style") or [])}
+{bullet_list(string_list(npc.get("speech_style")))}
 
 [알고 있는 지식 범위]
-{bullet_list(npc.get("knowledge_scope") or [])}
+{bullet_list(string_list(npc.get("knowledge_scope")))}
 
 [모르는 지식 / 말하면 안 되는 지식]
-{bullet_list(npc.get("restricted_knowledge") or [])}
+{bullet_list(string_list(npc.get("restricted_knowledge")))}
 
 [반드시 지킬 규칙]
-{bullet_list(npc.get("dialogue_must") or [])}
+{bullet_list(string_list(npc.get("dialogue_must")))}
 
 [절대 하지 말아야 할 것]
-{bullet_list(npc.get("dialogue_must_not") or [])}
+{bullet_list(string_list(npc.get("dialogue_must_not")))}
 
 [현재 대화 상태]
 quest_id: {quest_id}
@@ -270,8 +273,22 @@ def stream_gemma_response(prompt: str):
                 if content:
                     yield content
 
-    except Exception as e:
-        yield f"\n\n[vLLM 호출 오류] {e}"
+    except requests.exceptions.ConnectionError:
+        yield (
+            "\n\n[vLLM 서버가 아직 준비 중] vLLM 컨테이너가 모델 로딩을 끝내고 "
+            "`/health` 응답을 낼 때까지 기다린 뒤 다시 시도하세요. "
+            "로컬 검증 스택은 `docker compose --env-file .env.design-test.example "
+            "-f compose.design-test.yaml --profile gpu up -d neo4j vllm streamlit`로 vLLM을 함께 띄웁니다."
+        )
+    except requests.exceptions.Timeout:
+        yield "\n\n[vLLM 호출 오류] vLLM 응답 시간이 초과되었습니다. 잠시 뒤 다시 시도하세요."
+    except requests.exceptions.HTTPError as e:
+        status_code = e.response.status_code if e.response is not None else "unknown"
+        yield f"\n\n[vLLM 호출 오류] vLLM 서버가 HTTP {status_code}를 반환했습니다."
+    except requests.exceptions.RequestException:
+        yield "\n\n[vLLM 호출 오류] vLLM 서버 호출 중 네트워크 오류가 발생했습니다."
+    except json.JSONDecodeError:
+        yield "\n\n[vLLM 호출 오류] vLLM 스트리밍 응답을 해석하지 못했습니다."
 
 
 # -----------------------------

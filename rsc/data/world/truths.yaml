@@ -3,10 +3,10 @@ truths:
   name: 달빛 샘터의 마나 주기 강화
   answer_sensitive: true
   reveal_conditions:
-    quest_state:
+    quest_states:
     - ready_to_answer
     - solved
-    required_clues:
+    required_clue_ids:
     - clue_bright_mushroom
     - clue_jelly_color_change
     - clue_glittering_powder
@@ -14,19 +14,19 @@ truths:
   name: 몽실버섯 포자 냄새가 말랑돼지를 숲 방향으로 끌어당김
   answer_sensitive: true
   reveal_conditions:
-    quest_state:
+    quest_states:
     - ready_to_answer
     - solved
-    required_clues:
+    required_clue_ids:
     - clue_pig_tracks
     - clue_glittering_powder
 - truth_id: truth_stump_followed_spores
   name: 꼬마그루터기가 포자 반응을 따라 움직이다 표지판을 바꿈
   answer_sensitive: true
   reveal_conditions:
-    quest_state:
+    quest_states:
     - ready_to_answer
     - solved
-    required_clues:
+    required_clue_ids:
     - clue_changed_signpost
     - clue_root_marks
