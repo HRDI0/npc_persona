@@ -149,8 +149,8 @@ location_ids:
 event_ids:
   - event_glowing_mushroom
 clue_ids:
-  - clue_mushroom_glows_at_night
-  - clue_brighter_under_moonlight
+  - clue_bright_mushroom
+  - clue_moonlit_night
 allowed_roles:
   - farmer
   - lord
@@ -187,8 +187,8 @@ location_ids:
 event_ids:
   - event_pig_escape
 clue_ids:
-  - clue_pigs_move_toward_forest
-  - clue_pigs_follow_smell
+  - clue_pig_tracks
+  - clue_glittering_powder
 allowed_roles:
   - farmer
   - lord
@@ -224,7 +224,7 @@ location_ids:
 event_ids:
   - event_jelly_color_change
 clue_ids:
-  - clue_jelly_color_deeper
+  - clue_jelly_color_change
 allowed_roles:
   - farmer
   - lord
@@ -259,7 +259,7 @@ location_ids:
 event_ids:
   - event_changed_signpost
 clue_ids:
-  - clue_stumpy_is_mischievous
+  - clue_changed_signpost
 allowed_roles:
   - farmer
   - lord
@@ -297,8 +297,8 @@ event_ids:
   - event_glowing_mushroom
   - event_pig_escape
 clue_ids:
-  - clue_mushroom_glows_at_night
-  - clue_pigs_move_toward_forest
+  - clue_bright_mushroom
+  - clue_pig_tracks
 allowed_roles:
   - farmer
   - lord
@@ -317,6 +317,41 @@ tags:
 그녀는 플레이어에게 도움을 요청하지만 정답을 알고 있는 인물은 아니다. 민민 부인은 자신이 본 것, 느낀 것, 생활 속에서 알아차린 변화만 이야기한다. 마법 원리나 촌장의 비밀스러운 판단은 알지 못한다.
 
 민민 부인은 플레이어가 너무 성급하게 답을 원하면 바로 알려주기보다는, 직접 보고 생각해 보라고 타이른다. 그녀에게 중요한 것은 정답을 맞히는 것보다, 플레이어가 마을의 작은 변화들을 찬찬히 살펴보는 일이다.
+
+---
+
+### 울타리 주변의 밤 냄새
+
+```story-chunk
+chunk_id: minmin_chronicle_008
+phase: farm_night_smell
+title: 민민 부인이 맡은 울타리 주변의 밤 냄새
+knowledge_type: farm_observation
+quest_id: q_pig_escape
+location_ids:
+  - east_farm
+  - whispering_forest_entrance
+event_ids:
+  - event_pig_escape
+clue_ids:
+  - clue_pig_tracks
+  - clue_glittering_powder
+allowed_roles:
+  - farmer
+  - lord
+answer_sensitive: false
+hint_level: 1
+tags:
+  - 민민 부인
+  - 울타리
+  - 밤 냄새
+  - 반짝이는 가루
+  - 말랑돼지
+```
+
+말랑돼지들이 울타리를 넘던 밤마다 민민 부인은 우리 바깥쪽 풀잎에서 낯선 달큰한 냄새를 맡았다. 먹이통 냄새와는 달랐고, 비 온 뒤 흙냄새와도 달랐다. 그녀는 그 냄새가 숲 입구 쪽 바람을 타고 온 것 같다고 기억한다.
+
+다음 날 아침 울타리 근처를 쓸다가 풀잎과 흙 위에 희미하게 반짝이는 가루가 묻어 있는 것도 보았다. 민민 부인은 그 가루가 무엇인지 모르며, 말랑돼지가 왜 그 냄새에 반응했는지도 확정하지 않는다. 다만 말랑돼지들이 같은 방향으로 코를 킁킁거리며 움직였다는 생활 관찰만 말할 수 있다.
 
 ---
 

@@ -2,14 +2,15 @@ quest_id: q_jelly_color
 title: 방울젤리 색 변화
 quest_type: quiz
 main_location_id: soft_field
-involves:
+involved_npc_ids:
 - mage_lumi
 - patrol_leader_rio
 - chief_rowan
-required_clues:
+required_clue_ids:
 - clue_jelly_color_change
 - clue_mana_reaction
-answer_truth_id: truth_moonwell_mana_cycle
+answer_truth_ids:
+- truth_moonwell_mana_cycle
 states:
 - not_started
 - in_progress
@@ -17,3 +18,90 @@ states:
 - hint_2_given
 - ready_to_answer
 - solved
+story_expansion:
+  episode_order: 3
+  quest_role: environmental_signal
+  type: investigation_quiz
+  summary: 방울젤리 색 변화가 단순한 들판 현상이 아니라 주변 흐름 변화의 신호일 수 있음을 확인한다.
+  main_location_ids:
+  - soft_field
+  - whispering_forest_entrance
+  - magic_shop
+  optional_clue_ids:
+  - clue_moonlit_night
+  story_purpose:
+    summary: 생물 반응을 통해 앞선 빛과 가루 단서를 보강한다.
+    player_goal: 색 변화가 어디에서 더 강하게 나타나는지 확인한다.
+    emotional_tone: 귀여운 생물 관찰에서 시작하는 조용한 긴장감.
+  quest_steps:
+  - step_id: observe_field
+    title: 관찰
+    objective: 말랑 들판의 방울젤리 색을 확인한다.
+    npc_id: patrol_leader_rio
+    location_id: soft_field
+    player_observation: 평소보다 진한 색을 띠는 개체가 보인다.
+    npc_hint: 가까이 가되 방심하지 마라.
+    unlocked_clue_ids:
+    - clue_jelly_color_change
+    next_step_condition: 색 변화 확인
+  - step_id: compare_area
+    title: 힌트
+    objective: 숲 입구와 가까운 곳의 변화를 비교한다.
+    npc_id: mage_lumi
+    location_id: soft_field
+    player_observation: 숲 입구 가까운 곳에서 변화가 더 잦다.
+    npc_hint: 위치 차이를 봐야 해.
+    unlocked_clue_ids: []
+    next_step_condition: 위치 비교
+  - step_id: test_reaction
+    title: 단서
+    objective: 마법 잡화점에서 약한 반응을 확인한다.
+    npc_id: mage_lumi
+    location_id: magic_shop
+    player_observation: 루미의 도구가 약한 반응을 보인다.
+    npc_hint: 결정적 답은 아니지만 흐름은 있어.
+    unlocked_clue_ids:
+    - clue_mana_reaction
+    next_step_condition: 반응 확인
+  - step_id: report_pattern
+    title: 추론
+    objective: 로완에게 빛과 색 변화의 공통점을 보고한다.
+    npc_id: chief_rowan
+    location_id: hazel_square
+    player_observation: 로완은 같은 시기와 방향을 비교하게 한다.
+    npc_hint: 같은 방향을 가리키는지 살펴보게.
+    unlocked_clue_ids: []
+    next_step_condition: 종합 후보 확보
+  wrong_hypotheses:
+  - hypothesis_id: jelly_seasonal_color
+    text: 방울젤리의 계절성 색 변화다.
+    why_it_seems_possible: 생물은 계절과 환경에 따라 달라질 수 있다.
+    disproof_clue_ids:
+    - clue_mana_reaction
+    npc_reaction: 루미는 위치와 반응이 일정하게 겹친다고 설명한다.
+  hint_flow:
+    hint_0: 색이 다른 개체만 보지 말고 위치를 비교한다.
+    hint_1: 숲 입구와 가까울수록 변화가 잦은지 확인한다.
+    hint_2: 마법적 반응을 별도로 확인한다.
+    final_hint: 빛, 색, 반응이 같은 흐름에 놓일 수 있다.
+  access_control_notes:
+    knight_view: 리오는 색 변화 자체보다 접근 안전과 관찰 거리를 말한다.
+    mage_view: 루미는 색 변화와 마나 반응을 비교하지만 최종 원리로 단정하지 않는다.
+    lord_view: 로완은 색 변화가 다른 사건과 같은 방향을 가리키는지 검토하게 한다.
+    forbidden_before_reveal: 방울젤리 색 변화가 최종 truth의 직접 증명이라고 말하지 않는다.
+  answer_reveal_policy:
+    can_reveal_truth_before_required_clues: false
+    required_before_reveal:
+    - clue_jelly_color_change
+    - clue_mana_reaction
+    npc_allowed_to_reveal:
+    - chief_rowan
+    npc_not_allowed_to_reveal:
+    - minmin_lady
+    - patrol_leader_rio
+    - mage_lumi
+  completion:
+    player_answer_condition: required_clue_ids가 모두 확인되고 플레이어가 단서 연결을 말한다.
+    success_dialogue: 단서가 충분히 모였을 때만 NPC가 추론을 인정한다.
+    partial_success_dialogue: 방향은 맞지만 빠진 단서를 다시 확인하게 한다.
+    after_effect: 마을은 즉시 크게 변하지 않지만 NPC별 후속 대사가 열린다.
