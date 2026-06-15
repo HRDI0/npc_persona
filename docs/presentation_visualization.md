@@ -199,7 +199,7 @@ sequenceDiagram
 | main Compose config | `docker compose --env-file .env.example -f compose.yaml config --quiet` → OK |
 | isolated Neo4j/Streamlit 기동 | `hazel_design_test-neo4j-1`, `hazel_design_test-streamlit-1` 기동 |
 | 원천 데이터 적재 | NPCs 4, Locations 8, Quests 5, Roles 4, Events 5, Clues 8, Truths 3, KnowledgeChunks 26 |
-| NPC별 chunk count | chief_rowan 6, mage_lumi 4, minmin_lady 7, patrol_leader_rio 5 |
+| NPC별 chunk count | chief_rowan 7, mage_lumi 5, minmin_lady 8, patrol_leader_rio 6 |
 | placeholder clue | 결과 없음 |
 | Streamlit HTTP surface | `http://127.0.0.1:18501` → HTTP 200 |
 | vLLM Docker image/API | `vllm/vllm-openai:latest` pull 완료, `/v1/models`에서 `google/gemma-4-E2B-it`, `max_model_len=2048` 확인 |

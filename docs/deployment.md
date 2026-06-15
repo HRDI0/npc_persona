@@ -10,6 +10,7 @@ PowerShell에서 환경변수를 명시한다.
 $env:NEO4J_URI="bolt://localhost:7687"
 $env:NEO4J_USER="neo4j"
 $env:NEO4J_PASSWORD="admin2026"
+$env:NEO4J_DATABASE="neo4j"
 $env:VLLM_URL="http://localhost:8000/v1/chat/completions"
 $env:MODEL_NAME="google/gemma-4-E2B-it"
 ```
@@ -44,7 +45,7 @@ git pull --ff-only origin main
 cp .env.example .env
 ```
 
-필요하면 `.env`의 `HF_TOKEN`, `HF_CACHE_DIR`, `VLLM_URL`, `MODEL_NAME`을 서버 환경에 맞게 수정한다. 실제 토큰과 비밀번호는 추적되지 않는 `.env`에만 둔다. 외부 vLLM 서버를 쓰는 경우에는 `VLLM_URL`을 해당 서버에서 접근 가능한 주소로 바꾼다. vLLM을 같은 Compose 프로젝트에서 띄우면 기본값 `http://vllm:8000/v1/chat/completions`를 그대로 사용할 수 있다.
+필요하면 `.env`의 `NEO4J_DATABASE`, `HF_TOKEN`, `HF_CACHE_DIR`, `VLLM_URL`, `MODEL_NAME`을 서버 환경에 맞게 수정한다. 실제 토큰과 비밀번호는 추적되지 않는 `.env`에만 둔다. 외부 vLLM 서버를 쓰는 경우에는 `VLLM_URL`을 해당 서버에서 접근 가능한 주소로 바꾼다. vLLM을 같은 Compose 프로젝트에서 띄우면 기본값 `http://vllm:8000/v1/chat/completions`를 그대로 사용할 수 있다.
 
 Streamlit 이미지를 빌드하고 Neo4j와 앱을 실행한다. 실제 서버 실행은 복사해 둔 `.env`를 사용한다.
 

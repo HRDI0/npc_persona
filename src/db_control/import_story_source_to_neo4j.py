@@ -955,8 +955,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--source-dir",
-        default="story-source",
-        help="Path to story-source directory",
+        default="rsc/data",
+        help="Path to rsc/data source directory",
     )
     parser.add_argument(
         "--reset",

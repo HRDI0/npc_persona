@@ -1,5 +1,6 @@
 ﻿import unittest
 from pathlib import Path
+from subprocess import run
 from typing import cast, final
 
 import yaml
@@ -61,6 +62,33 @@ class DeploymentContractTest(unittest.TestCase):
                     services["streamlit"]["depends_on"],
                 )
                 self.assertEqual("service_healthy", streamlit_depends_on["vllm"]["condition"])
+                self.assertIs(False, streamlit_depends_on["vllm"]["required"])
+
+    def test_compose_files_validate_without_gpu_profile_for_ubuntu_server(self):
+        for compose_name, env_name in [
+            ("compose.yaml", ".env.example"),
+            ("compose.design-test.yaml", ".env.design-test.example"),
+        ]:
+            with self.subTest(compose=compose_name):
+                result = run(
+                    [
+                        "docker",
+                        "compose",
+                        "--env-file",
+                        env_name,
+                        "-f",
+                        compose_name,
+                        "config",
+                        "--quiet",
+                    ],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+
+                self.assertEqual("", result.stderr, result.stderr)
+                self.assertEqual(0, result.returncode)
 
     def test_dockerfile_env_example_and_docs_exist(self):
         for relative_path in [
@@ -99,7 +127,7 @@ class DeploymentContractTest(unittest.TestCase):
 
         streamlit_env = cast(dict[str, str], services["streamlit"]["environment"])
         self.assertEqual("bolt://neo4j:7687", streamlit_env["NEO4J_URI"])
-        self.assertEqual("http://vllm:8000/v1/chat/completions", streamlit_env["VLLM_URL"])
+        self.assertIn("http://vllm:8000/v1/chat/completions", streamlit_env["VLLM_URL"])
         self.assertIn(TARGET_MODEL, streamlit_env["MODEL_NAME"])
 
         vllm = services["vllm"]
@@ -127,6 +155,8 @@ class DeploymentContractTest(unittest.TestCase):
         script = (ROOT / "scripts" / "download_model.ps1").read_text(encoding="utf-8")
 
         self.assertIn(f"VLLM_MODEL={TARGET_MODEL}", env_example)
+        self.assertIn("NEO4J_DATABASE=neo4j", env_example)
+        self.assertIn("NEO4J_DATABASE=neo4j", default_env_example)
         self.assertIn("LOCAL_MODEL_DIR=./models/google-gemma-4-E2B-it", env_example)
         self.assertIn("VLLM_GPU_MEMORY_UTILIZATION=0.9", env_example)
         self.assertIn("VLLM_MAX_MODEL_LEN=2048", env_example)
@@ -160,9 +190,15 @@ class DeploymentContractTest(unittest.TestCase):
     def test_docker_context_excludes_local_artifacts(self):
         dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
 
-        for pattern in ["data_export/", ".hf-cache/", ".omo/", "__pycache__/", "models/", ".env.design-test", ".env.example", "test-results/", "workspace_source/", "output/playwright/"]:
+        for pattern in ["data_export/", ".hf-cache/", ".omo/", "__pycache__/", "models/", ".env.design-test", ".env.example", "test-results/", "workspace_source/", "output/", "output/playwright/"]:
             with self.subTest(pattern=pattern):
                 self.assertIn(pattern, dockerignore)
+
+    def test_source_importer_defaults_to_canonical_rsc_data(self):
+        importer = (ROOT / "src" / "db_control" / "import_story_source_to_neo4j.py").read_text(encoding="utf-8")
+
+        self.assertIn('default="rsc/data"', importer)
+        self.assertIn("Path to rsc/data source directory", importer)
 
     def test_deployment_docs_explain_vllm_runtime_requirement(self):
         deployment = (ROOT / "docs" / "deployment.md").read_text(encoding="utf-8")

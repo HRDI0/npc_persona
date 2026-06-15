@@ -129,10 +129,10 @@ ORDER BY npc;
 ```
 
 ```text
-chief_rowan        6
-mage_lumi          4
-minmin_lady        7
-patrol_leader_rio  5
+chief_rowan        7
+mage_lumi          5
+minmin_lady        8
+patrol_leader_rio  6
 ```
 
 chunk에서만 언급되고 `world/clues.yaml`에 없는 placeholder clue는 없어야 한다.
