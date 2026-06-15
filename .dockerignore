@@ -14,5 +14,6 @@ data_export/
 models/
 test-results/
 workspace_source/
+output/
 output/playwright/
 *.pyc

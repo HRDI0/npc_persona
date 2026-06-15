@@ -12,6 +12,7 @@ __pycache__/
 
 .hf-cache/
 .omo/
+.playwright-cli/
 data_export/
 models/
 test-results/

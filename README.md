@@ -64,11 +64,34 @@ python scripts/story_pipeline/reset_neo4j_dev.py
 
 ## Ubuntu Docker 운영
 
-서버에서는 `.env.example`을 복사한 뒤 실제 비밀번호와 vLLM 주소를 서버 secret 또는 추적되지 않는 `.env`에만 둡니다.
+서버에서는 `main`을 가져온 뒤 `.env.example`을 복사하고, 실제 비밀번호와 vLLM 주소를 추적되지 않는 `.env`에만 둡니다.
 
 ```bash
+git fetch origin
+git switch main
 git pull --ff-only origin main
+
 cp .env.example .env
+nano .env
+```
+
+`.env`에서 최소한 다음 값을 서버 환경에 맞게 확인합니다.
+
+```bash
+NEO4J_PASSWORD=<your-password>
+NEO4J_DATABASE=neo4j
+MODEL_NAME=google/gemma-4-E2B-it
+```
+
+외부 vLLM 서버를 쓰면 `VLLM_URL`을 해당 서버에서 접근 가능한 주소로 바꿉니다. 같은 Compose 프로젝트에서 GPU vLLM까지 띄우는 서버라면 기본값 `http://vllm:8000/v1/chat/completions`를 그대로 둡니다.
+
+```bash
+VLLM_URL=http://<vllm-host>:8000/v1/chat/completions
+```
+
+외부 vLLM을 쓰거나 Neo4j와 Streamlit만 먼저 띄울 때는 다음 명령을 사용합니다.
+
+```bash
 docker compose --env-file .env build streamlit
 docker compose --env-file .env up -d neo4j streamlit
 ```
@@ -83,6 +106,33 @@ docker compose --env-file .env --profile gpu up -d neo4j vllm streamlit
 
 ```bash
 docker compose --env-file .env run --rm streamlit uv run --frozen python src/db_control/import_story_source_to_neo4j.py --source-dir rsc/data
+```
+
+구동 상태는 다음처럼 확인합니다.
+
+```bash
+docker compose --env-file .env ps
+curl http://127.0.0.1:8501/_stcore/health
+docker compose --env-file .env logs -f streamlit
+```
+
+기본 `compose.yaml`은 Streamlit, Neo4j, vLLM 포트를 모두 `127.0.0.1`에만 바인딩합니다. 서버 내부에서는 `http://127.0.0.1:8501`로 확인할 수 있지만, 외부 브라우저에서 바로 `http://<server-ip>:8501`로 접속되지는 않습니다.
+
+외부 접속은 reverse proxy 또는 SSH 터널을 권장합니다. 임시 확인은 로컬 PC에서 다음처럼 터널을 열고 브라우저에서 `http://127.0.0.1:8501`로 접속합니다.
+
+```bash
+ssh -L 8501:127.0.0.1:8501 <user>@<server-ip>
+```
+
+포트를 직접 공개해야 한다면 `compose.yaml`의 Streamlit 포트만 다음처럼 바꾼 뒤 컨테이너를 다시 올리고, 서버 방화벽이나 클라우드 보안 그룹에서 TCP `8501`을 엽니다. Neo4j 포트 `7474`, `7687`은 외부 공개하지 않는 쪽을 권장합니다.
+
+```yaml
+ports:
+  - "0.0.0.0:8501:8501"
+```
+
+```bash
+docker compose --env-file .env up -d streamlit
 ```
 
 ## 발표 자료

@@ -506,10 +506,10 @@ docker exec -it hazel-neo4j cypher-shell -u neo4j -p admin2026 "MATCH (n:NPC) OP
 목표는 다음이다.
 
 ```text
-chief_rowan        6
-mage_lumi          4
-minmin_lady        7
-patrol_leader_rio  5
+chief_rowan        7
+mage_lumi          5
+minmin_lady        8
+patrol_leader_rio  6
 ```
 
 퀘스트 연결을 확인한다.

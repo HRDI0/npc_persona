@@ -1,36 +1,39 @@
-﻿const slides = Array.from(document.querySelectorAll('.slide'));
+const slides = Array.from(document.querySelectorAll('.slide'));
 const prevButton = document.getElementById('prevSlide');
 const nextButton = document.getElementById('nextSlide');
-const counter = document.getElementById('slideCounter');
+const slideCounter = document.getElementById('slideCounter');
+
 let currentSlide = 0;
 
 function showSlide(index) {
-  currentSlide = Math.max(0, Math.min(index, slides.length - 1));
+  currentSlide = (index + slides.length) % slides.length;
+
   slides.forEach((slide, slideIndex) => {
-    slide.classList.toggle('active', slideIndex === currentSlide);
+    slide.classList.toggle('is-active', slideIndex === currentSlide);
   });
-  counter.textContent = `${currentSlide + 1} / ${slides.length}`;
-  prevButton.disabled = currentSlide === 0;
-  nextButton.disabled = currentSlide === slides.length - 1;
+
+  slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
 }
 
-function moveSlide(delta) {
-  showSlide(currentSlide + delta);
+function nextSlide() {
+  showSlide(currentSlide + 1);
 }
 
-prevButton.addEventListener('click', () => moveSlide(-1));
-nextButton.addEventListener('click', () => moveSlide(1));
+function prevSlide() {
+  showSlide(currentSlide - 1);
+}
+
+nextButton.addEventListener('click', nextSlide);
+prevButton.addEventListener('click', prevSlide);
 
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'ArrowRight' || event.key === 'PageDown') moveSlide(1);
-  if (event.key === 'ArrowLeft' || event.key === 'PageUp') moveSlide(-1);
-  if (event.key === 'Home') showSlide(0);
-  if (event.key === 'End') showSlide(slides.length - 1);
+  if (event.key === 'ArrowRight') {
+    nextSlide();
+  }
+
+  if (event.key === 'ArrowLeft') {
+    prevSlide();
+  }
 });
 
-const requestedSlide = new URLSearchParams(window.location.search).get('slide');
-const initialSlide = requestedSlide
-  ? slides.findIndex((slide) => slide.dataset.slideId === requestedSlide)
-  : 0;
-
-showSlide(initialSlide >= 0 ? initialSlide : 0);
+showSlide(currentSlide);

@@ -164,7 +164,7 @@ flowchart TD
     Import --> UpChunk
 ```
 
-`main()`의 기본 `--source-dir` 값은 코드상 `story-source`다. 현재 운영 문서와 검증 명령은 `--source-dir rsc/data`를 명시한다. 따라서 현재 저장소 데이터로 import할 때는 반드시 `--source-dir rsc/data`를 붙이는 흐름이 기준이다.
+`main()`의 기본 `--source-dir` 값은 코드상 `rsc/data`다. 따라서 일반 문서와 검증 명령은 이 기본값에 맡기거나, 경로를 명시해야 할 때 `--source-dir rsc/data`를 붙이면 된다.
 
 ### 4.3 importer의 적재 순서가 중요한 이유
 
@@ -421,10 +421,10 @@ flowchart TB
 ```mermaid
 pie showData
     title NPC별 KnowledgeChunk 수
-    "chief_rowan" : 6
-    "mage_lumi" : 4
-    "minmin_lady" : 7
-    "patrol_leader_rio" : 5
+    "chief_rowan" : 7
+    "mage_lumi" : 5
+    "minmin_lady" : 8
+    "patrol_leader_rio" : 6
 ```
 
 이 분포는 런타임에서 특정 NPC를 선택했을 때 조회 가능한 후보 지식의 상한을 결정한다. Streamlit 앱은 매 질문마다 해당 NPC에서 시작하는 `KNOWS` 관계만 따라간다. 다른 NPC의 chunk는 같은 퀘스트에 연결되어 있더라도 조회 시작점이 다르기 때문에 기본적으로 섞이지 않는다.
