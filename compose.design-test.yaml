@@ -23,10 +23,14 @@ services:
       NEO4J_USER: ${NEO4J_USER:-neo4j}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:-admin2026}
       NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
+      PYTHONPATH: /app
       VLLM_URL: ${VLLM_URL:-http://vllm:8000/v1/chat/completions}
       MODEL_NAME: ${MODEL_NAME:-google/gemma-4-E2B-it}
+      CHAT_LOG_PATH: ${CHAT_LOG_PATH:-output/reports/streamlit_llm_interactions.jsonl}
     ports:
       - "127.0.0.1:18501:8501"
+    volumes:
+      - ./output:/app/output
     depends_on:
       neo4j:
         condition: service_healthy
