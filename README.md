@@ -54,7 +54,13 @@ NEO4J_PASSWORD=<your-password>
 NEO4J_DATABASE=neo4j
 ```
 
-자세한 적재 절차와 코드 설명은 `docs/neo4j_story_import_guide.md`에 정리했습니다.
+원천 importer는 `--source-dir`, `--reset`, `--dry-run`, `--database`, `--report-path`를 지원합니다. 먼저 DB 접속 없이 원천 검증과 리포트 생성을 확인하려면 다음 명령을 사용합니다.
+
+```bash
+python src/db_control/import_story_source_to_neo4j.py --source-dir rsc/data --dry-run --database neo4j
+```
+
+기본 리포트 경로는 `output/reports/neo4j_story_source_import_report.md`입니다. 자세한 적재 절차와 코드 설명은 `docs/neo4j_story_import_guide.md`에 정리했습니다.
 
 개발 DB 전체 재생성은 명시적으로 승인된 경우에만 실행합니다.
 
@@ -81,7 +87,10 @@ nano .env
 NEO4J_PASSWORD=<your-password>
 NEO4J_DATABASE=neo4j
 MODEL_NAME=google/gemma-4-E2B-it
+CHAT_LOG_PATH=output/reports/streamlit_llm_interactions.jsonl
 ```
+
+Streamlit은 대화 선택값, 사용자 입력, 모델 출력, 조회 chunk, 최종 프롬프트를 JSONL로 남깁니다. `CHAT_LOG_PATH`를 바꾸지 않으면 기본 경로는 `output/reports/streamlit_llm_interactions.jsonl`입니다.
 
 외부 vLLM 서버를 쓰면 `VLLM_URL`을 해당 서버에서 접근 가능한 주소로 바꿉니다. 같은 Compose 프로젝트에서 GPU vLLM까지 띄우는 서버라면 기본값 `http://vllm:8000/v1/chat/completions`를 그대로 둡니다.
 
