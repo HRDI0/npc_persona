@@ -98,10 +98,14 @@ WHERE
   AND k.hint_level <= $allowed_hint_level
   AND (k.answer_sensitive = false OR $quest_state IN ["ready_to_answer", "solved"])
 RETURN k
-ORDER BY k.hint_level ASC, k.chunk_id ASC
+ORDER BY
+  CASE WHEN k.quest_id = $quest_id THEN 0 ELSE 1 END,
+  k.hint_level DESC,
+  k.chunk_id ASC
+LIMIT 8
 ```
 
-이 조건 때문에 모든 chunk는 먼저 `hint_level` 상한을 통과해야 하고, `answer_sensitive=true`인 최종 정답 chunk는 `ready_to_answer` 또는 `solved` 상태에서만 열린다. 중간 가설로 말해도 되는 루미의 마나 분석 chunk는 `answer_sensitive=false`, `hint_level=2`로 둔다.
+이 조건 때문에 모든 chunk는 먼저 `hint_level` 상한을 통과해야 하고, `answer_sensitive=true`인 최종 정답 chunk는 `ready_to_answer` 또는 `solved` 상태에서만 열린다. 정렬은 정확히 현재 퀘스트에 연결된 chunk를 먼저 두고, 같은 우선순위 안에서는 `hint_level DESC`, `chunk_id ASC` 순서로 최대 8개를 고른다. 중간 가설로 말해도 되는 루미의 마나 분석 chunk는 `answer_sensitive=false`, `hint_level=2`로 둔다.
 
 ## Importer 운영 방식
 
