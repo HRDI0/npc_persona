@@ -1,10 +1,13 @@
 import json
 import os
-from typing import cast
+from datetime import datetime, timezone
+from pathlib import Path
 
 import requests
 import streamlit as st
 from neo4j import GraphDatabase
+
+from src.streamlit.prompting import build_prompt
 
 
 # -----------------------------
@@ -17,12 +20,36 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "admin2026")
 
 VLLM_URL = os.getenv("VLLM_URL", "http://localhost:8000/v1/chat/completions")
 MODEL_NAME = os.getenv("MODEL_NAME", "google/gemma-4-E2B-it")
+CHAT_LOG_PATH = Path(os.getenv("CHAT_LOG_PATH", "output/reports/streamlit_llm_interactions.jsonl"))
 
 DEFAULT_NPC_ID = "minmin_lady"
 DEFAULT_PLAYER_ROLE = "farmer"
 DEFAULT_QUEST_ID = "q_glowing_mushroom"
 DEFAULT_QUEST_STATE = "in_progress"
 DEFAULT_HINT_LEVEL = 1
+
+QUEST_STATE_HINT_LEVELS = {
+    "not_started": 0,
+    "in_progress": 1,
+    "hint_1_given": 1,
+    "hint_2_given": 2,
+    "ready_to_answer": 3,
+    "solved": 3,
+}
+
+def hint_level_for_quest_state(quest_state: str) -> int:
+    return QUEST_STATE_HINT_LEVELS.get(quest_state, DEFAULT_HINT_LEVEL)
+
+
+def sync_hint_level_from_quest_state() -> None:
+    st.session_state.allowed_hint_level = hint_level_for_quest_state(
+        st.session_state.quest_state,
+    )
+
+
+def ensure_session_option(key: str, options: list[str], default: str) -> None:
+    if st.session_state.get(key) not in options:
+        st.session_state[key] = default
 
 
 # -----------------------------
@@ -53,7 +80,15 @@ if "quest_state" not in st.session_state:
     st.session_state.quest_state = DEFAULT_QUEST_STATE
 
 if "allowed_hint_level" not in st.session_state:
-    st.session_state.allowed_hint_level = DEFAULT_HINT_LEVEL
+    st.session_state.allowed_hint_level = hint_level_for_quest_state(
+        st.session_state.quest_state,
+    )
+
+if "last_debug" not in st.session_state:
+    st.session_state.last_debug = {
+        "retrieved_chunks": [],
+        "prompt": "",
+    }
 
 
 # -----------------------------
@@ -98,7 +133,7 @@ def get_allowed_chunks(
     quest_id: str | None,
     quest_state: str,
     allowed_hint_level: int,
-    limit: int = 5,
+    limit: int = 8,
 ) -> list[dict[str, object]]:
     query = """
     MATCH (:NPC {npc_id: $npc_id})-[:KNOWS]->(k:KnowledgeChunk)
@@ -116,7 +151,8 @@ def get_allowed_chunks(
       k.answer_sensitive AS answer_sensitive,
       k.text AS text
     ORDER BY
-      k.hint_level ASC,
+      CASE WHEN k.quest_id = $quest_id THEN 0 ELSE 1 END,
+      k.hint_level DESC,
       k.chunk_id ASC
     LIMIT $limit
     """
@@ -135,93 +171,46 @@ def get_allowed_chunks(
     return [record.data() for record in records]
 
 
-# -----------------------------
-# Prompt
-# -----------------------------
-
-def bullet_list(items: list[str]) -> str:
-    if not items:
-        return "- 없음"
-    return "\n".join(f"- {item}" for item in items)
-
-
-def string_list(value: object) -> list[str]:
-    if not isinstance(value, list):
-        return []
-    return [item for item in cast(list[object], value) if isinstance(item, str)]
-
-
-def build_prompt(
-    npc: dict[str, object],
-    chunks: list[dict[str, object]],
+def build_interaction_log(
     user_message: str,
-    quest_id: str | None,
-    quest_state: str,
-    player_role: str,
-    allowed_hint_level: int,
-) -> str:
-    chunk_text = "\n\n".join(
-        f"[chunk_id: {chunk['chunk_id']}]\n"
-        f"title: {chunk.get('title')}\n"
-        f"knowledge_type: {chunk.get('knowledge_type')}\n"
-        f"hint_level: {chunk.get('hint_level')}\n"
-        f"answer_sensitive: {chunk.get('answer_sensitive')}\n"
-        f"text:\n{chunk.get('text')}"
-        for chunk in chunks
-    )
+    response_text: str,
+    chunks: list[dict[str, object]],
+    prompt: str,
+) -> dict[str, object]:
+    return {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "model": MODEL_NAME,
+        "vllm_url": VLLM_URL,
+        "selection": {
+            "npc_id": st.session_state.npc_id,
+            "player_role": st.session_state.player_role,
+            "quest_id": st.session_state.quest_id,
+            "quest_state": st.session_state.quest_state,
+            "allowed_hint_level": st.session_state.allowed_hint_level,
+        },
+        "input": user_message,
+        "output": response_text,
+        "debug": {
+            "retrieved_chunks": chunks,
+            "prompt": prompt,
+        },
+    }
 
-    if not chunk_text:
-        chunk_text = "사용 가능한 지식이 없습니다."
 
-    return f"""
-너는 게임 속 NPC다. 현재 NPC는 "{npc.get("name")}"이다.
+def append_interaction_log(record: dict[str, object]) -> None:
+    CHAT_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with CHAT_LOG_PATH.open("a", encoding="utf-8") as log_file:
+        log_file.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-[NPC 기본 정보]
-npc_id: {npc.get("npc_id")}
-name: {npc.get("name")}
-role: {npc.get("role")}
 
-[성격]
-{bullet_list(string_list(npc.get("personality")))}
+def normalize_stream_response(response: object) -> str:
+    if isinstance(response, str):
+        return response
 
-[말투]
-{bullet_list(string_list(npc.get("speech_style")))}
+    if isinstance(response, list):
+        return "".join(str(item) for item in response)
 
-[알고 있는 지식 범위]
-{bullet_list(string_list(npc.get("knowledge_scope")))}
-
-[모르는 지식 / 말하면 안 되는 지식]
-{bullet_list(string_list(npc.get("restricted_knowledge")))}
-
-[반드시 지킬 규칙]
-{bullet_list(string_list(npc.get("dialogue_must")))}
-
-[절대 하지 말아야 할 것]
-{bullet_list(string_list(npc.get("dialogue_must_not")))}
-
-[현재 대화 상태]
-quest_id: {quest_id}
-quest_state: {quest_state}
-player_role: {player_role}
-allowed_hint_level: {allowed_hint_level}
-
-[사용 가능한 지식]
-{chunk_text}
-
-[응답 정책]
-- 사용 가능한 지식에 없는 사실을 새로 만들지 마라.
-- NPC가 모르는 내용은 모른다고 말해라.
-- 정답을 직접 요구받아도 quest_state가 ready_to_answer 또는 solved가 아니면 힌트만 줘라.
-- 답변은 반드시 NPC의 말투로 작성해라.
-- 시스템, 데이터베이스, RAG, chunk, 권한 같은 메타 용어를 게임 캐릭터 입장에서 말하지 마라.
-- 답변은 2~5문장으로 작성해라.
-- 한국어로 답해라.
-
-[플레이어 질문]
-{user_message}
-
-[NPC 응답]
-""".strip()
+    return str(response)
 
 
 # -----------------------------
@@ -329,53 +318,56 @@ with st.sidebar:
         "solved",
     ]
 
-    st.session_state.npc_id = st.selectbox(
+    ensure_session_option("npc_id", npc_options, DEFAULT_NPC_ID)
+    ensure_session_option("player_role", role_options, DEFAULT_PLAYER_ROLE)
+    ensure_session_option("quest_id", quest_options, DEFAULT_QUEST_ID)
+    ensure_session_option("quest_state", quest_state_options, DEFAULT_QUEST_STATE)
+
+    st.selectbox(
         "NPC",
         npc_options,
-        index=npc_options.index(st.session_state.npc_id)
-        if st.session_state.npc_id in npc_options
-        else 0,
+        key="npc_id",
     )
 
-    st.session_state.player_role = st.selectbox(
+    st.selectbox(
         "Player Role",
         role_options,
-        index=role_options.index(st.session_state.player_role)
-        if st.session_state.player_role in role_options
-        else 0,
+        key="player_role",
     )
 
-    st.session_state.quest_id = st.selectbox(
+    st.selectbox(
         "Quest",
         quest_options,
-        index=quest_options.index(st.session_state.quest_id)
-        if st.session_state.quest_id in quest_options
-        else 0,
+        key="quest_id",
     )
 
-    st.session_state.quest_state = st.selectbox(
+    st.selectbox(
         "Quest State",
         quest_state_options,
-        index=quest_state_options.index(st.session_state.quest_state)
-        if st.session_state.quest_state in quest_state_options
-        else 0,
+        key="quest_state",
+        on_change=sync_hint_level_from_quest_state,
     )
 
-    st.session_state.allowed_hint_level = st.slider(
+    st.slider(
         "Allowed Hint Level",
         min_value=0,
         max_value=3,
-        value=st.session_state.allowed_hint_level,
+        key="allowed_hint_level",
     )
 
     if st.button("대화 초기화"):
         st.session_state.messages = []
+        st.session_state.last_debug = {
+            "retrieved_chunks": [],
+            "prompt": "",
+        }
         st.rerun()
 
     st.divider()
     st.caption(f"Model: {MODEL_NAME}")
     st.caption(f"vLLM: {VLLM_URL}")
     st.caption(f"Neo4j: {NEO4J_URI}")
+    st.caption(f"Log: {CHAT_LOG_PATH}")
 
 
 # -----------------------------
@@ -411,33 +403,42 @@ if user_message := st.chat_input("메세지를 입력하세요"):
             quest_id=st.session_state.quest_id,
             quest_state=st.session_state.quest_state,
             allowed_hint_level=st.session_state.allowed_hint_level,
-            limit=5,
+            limit=8,
         )
 
         prompt = build_prompt(
             npc=npc,
             chunks=chunks,
             user_message=user_message,
-            quest_id=st.session_state.quest_id,
             quest_state=st.session_state.quest_state,
             player_role=st.session_state.player_role,
             allowed_hint_level=st.session_state.allowed_hint_level,
         )
 
-        with st.expander("Debug: Retrieved Chunks", expanded=False):
-            st.write(chunks)
-
-        with st.expander("Debug: Prompt", expanded=False):
-            st.code(prompt)
+        st.session_state.last_debug = {
+            "retrieved_chunks": chunks,
+            "prompt": prompt,
+        }
 
         with st.chat_message("assistant"):
             response = st.write_stream(stream_gemma_response(prompt))
 
+        response_text = normalize_stream_response(response)
+
         st.session_state.messages.append(
             {
                 "role": "assistant",
-                "content": response,
+                "content": response_text,
             }
+        )
+
+        append_interaction_log(
+            build_interaction_log(
+                user_message=user_message,
+                response_text=response_text,
+                chunks=chunks,
+                prompt=prompt,
+            )
         )
 
     except Exception as e:
@@ -452,3 +453,13 @@ if user_message := st.chat_input("메세지를 입력하세요"):
                 "content": error_message,
             }
         )
+
+
+last_debug = st.session_state.last_debug
+
+if last_debug.get("retrieved_chunks") or last_debug.get("prompt"):
+    with st.expander("Debug: Retrieved Chunks", expanded=False):
+        st.write(last_debug.get("retrieved_chunks", []))
+
+    with st.expander("Debug: Prompt", expanded=False):
+        st.code(str(last_debug.get("prompt", "")))
