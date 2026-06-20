@@ -6,12 +6,14 @@
 .env.*.local
 .omo/
 .hf-cache/
+.playwright-cli/
 __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 data_export/
 models/
+playwright-report/
 test-results/
 workspace_source/
 output/

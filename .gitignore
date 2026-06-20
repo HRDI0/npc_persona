@@ -15,6 +15,7 @@ __pycache__/
 .playwright-cli/
 data_export/
 models/
+playwright-report/
 test-results/
 workspace_source/
 output/playwright/

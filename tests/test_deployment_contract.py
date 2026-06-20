@@ -183,14 +183,14 @@ class DeploymentContractTest(unittest.TestCase):
     def test_sensitive_local_artifacts_are_gitignored(self):
         gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
 
-        for pattern in ["data_export/", ".hf-cache/", ".omo/", "__pycache__/", "models/", ".env.design-test", "test-results/", "workspace_source/"]:
+        for pattern in ["data_export/", ".hf-cache/", ".omo/", ".playwright-cli/", "__pycache__/", "models/", ".env.design-test", "playwright-report/", "test-results/", "workspace_source/"]:
             with self.subTest(pattern=pattern):
                 self.assertIn(pattern, gitignore)
 
     def test_docker_context_excludes_local_artifacts(self):
         dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
 
-        for pattern in ["data_export/", ".hf-cache/", ".omo/", "__pycache__/", "models/", ".env.design-test", ".env.example", "test-results/", "workspace_source/", "output/", "output/playwright/"]:
+        for pattern in ["data_export/", ".hf-cache/", ".omo/", ".playwright-cli/", "__pycache__/", "models/", ".env.design-test", ".env.example", "playwright-report/", "test-results/", "workspace_source/", "output/", "output/playwright/"]:
             with self.subTest(pattern=pattern):
                 self.assertIn(pattern, dockerignore)
 
