@@ -28,7 +28,7 @@ flowchart LR
     Chunk -->|POINTS_TO| Clue
 
     Quest -->|REQUIRES_CLUE| Clue
-    Quest -->|HAS_TRUTH| Truth
+    Quest -->|HAS_ANSWER| Truth
     Clue -->|POINTS_TO| Truth
 ```
 
@@ -74,7 +74,7 @@ KnowledgeChunk: 26
 | `ABOUT` | `KnowledgeChunk -> Event` | 지식 chunk가 다루는 사건을 연결한다. |
 | `POINTS_TO` | `KnowledgeChunk -> Clue` | 지식 chunk가 어떤 단서를 제공하는지 연결한다. |
 | `REQUIRES_CLUE` | `Quest -> Clue` | 퀘스트 해결에 필요한 단서를 연결한다. |
-| `HAS_TRUTH` | `Quest -> Truth` | 퀘스트의 정답/진실을 연결한다. |
+| `HAS_ANSWER` | `Quest -> Truth` | 퀘스트의 정답/진실을 연결한다. |
 | `POINTS_TO` | `Clue -> Truth` | 단서가 어떤 진실을 가리키는지 연결한다. |
 
 `POINTS_TO`는 두 곳에서 쓰인다. `KnowledgeChunk -> Clue`에서는 지식이 단서를 제공한다는 뜻이고, `Clue -> Truth`에서는 단서가 진실로 이어진다는 뜻이다. 시작 노드와 끝 노드의 label이 다르기 때문에 의미가 구분된다.
@@ -240,7 +240,7 @@ flowchart LR
 
     Rowan -->|KNOWS| K005
     K005 -->|RELATED_TO| Quest
-    Quest -->|HAS_TRUTH| Truth
+    Quest -->|HAS_ANSWER| Truth
 ```
 
 `rowan_chronicle_005`는 다음 공개 조건을 가진다.
@@ -274,12 +274,13 @@ RETURN
   k.answer_sensitive AS answer_sensitive,
   k.text AS text
 ORDER BY
-  k.hint_level ASC,
+  CASE WHEN k.quest_id = $quest_id THEN 0 ELSE 1 END,
+  k.hint_level DESC,
   k.chunk_id ASC
 LIMIT $limit
 ```
 
-이 쿼리는 다음 순서로 지식을 걸러낸다.
+앱 호출부의 기본 limit은 8이다. 이 쿼리는 먼저 지식을 걸러낸 뒤, 현재 퀘스트와 정확히 일치하는 chunk를 앞에 두고, 같은 우선순위 안에서는 높은 `hint_level`부터 `chunk_id` 오름차순으로 정렬한다.
 
 ```mermaid
 flowchart LR
@@ -357,7 +358,7 @@ Neo4j 구조를 볼 때 가장 중요한 질문은 세 가지다.
 ```text
 민민 부인
   -> farmer 역할, east_farm 위치
-  -> 7개 KnowledgeChunk를 KNOWS로 가짐
+  -> 8개 KnowledgeChunk를 KNOWS로 가짐
   -> minmin_chronicle_003은 q_glowing_mushroom과 clue_bright_mushroom에 연결
   -> farmer/lord에게 hint 1부터 공개
   -> answer_sensitive가 false라 관찰 힌트로 사용 가능

@@ -65,7 +65,7 @@ YAML frontmatter
   -> KnowledgeChunk 노드 후보
 ```
 
-예를 들어 `rsc/data/npcs/minmin_lady.md`의 frontmatter에는 `npc_id`, `role`, `location_id`, `main_quest`, `personality`, `speech_style`, `knowledge_scope`, `restricted_knowledge`가 들어 있다. 이 값들은 Neo4j `NPC` 노드와 Streamlit prompt의 기본 정보가 된다.
+예를 들어 `rsc/data/npcs/minmin_lady.md`의 frontmatter에는 `npc_id`, `role`, `location_id`, `main_quest`, `personality`, `speech_style`, `knowledge_scope`, `restricted_knowledge`가 들어 있다. 이 값들은 Neo4j `NPC` 노드 속성으로 저장된다. 현재 NPC-facing context에는 `knowledge_scope`와 `restricted_knowledge` raw 값을 그대로 넣지 않고, 이름, 역할, 성격, 말투, 대화 규칙, 조회된 chunk 제목과 본문을 사용한다.
 
 ## 4. 데이터 증강에서 추가된 것
 
@@ -131,7 +131,7 @@ location_id: east_farm
 main_quest: q_glowing_mushroom
 ```
 
-민민 부인은 총 7개의 KnowledgeChunk 후보를 가진다.
+민민 부인은 총 8개의 KnowledgeChunk 후보를 가진다.
 
 | chunk | 내용 | 공개 조건 |
 |---|---|---|
@@ -142,6 +142,7 @@ main_quest: q_glowing_mushroom
 | `minmin_chronicle_005` | 방울젤리 색 변화 | farmer, lord / hint 1 |
 | `minmin_chronicle_006` | 표지판 사건 소문 | farmer, lord / hint 1 |
 | `minmin_chronicle_007` | 현재 농장 피해와 도움 요청 | farmer, lord / hint 1 |
+| `minmin_chronicle_008` | 울타리 밤 냄새 | farmer, lord / hint 2 |
 
 중요한 점은 민민 부인의 chunk들이 대부분 생활 관찰이라는 점이다. 민민은 마법 원리나 최종 진실을 말하지 않는다. 그래서 `answer_sensitive: false`인 관찰 정보는 줄 수 있지만, 최종 원인은 알지 못하는 NPC로 동작한다.
 
@@ -227,7 +228,11 @@ WHERE
   AND k.hint_level <= $allowed_hint_level
   AND (k.answer_sensitive = false OR $quest_state IN ["ready_to_answer", "solved"])
 RETURN k.chunk_id, k.title, k.text
-ORDER BY k.hint_level ASC, k.chunk_id ASC
+ORDER BY
+  CASE WHEN k.quest_id = $quest_id THEN 0 ELSE 1 END,
+  k.hint_level DESC,
+  k.chunk_id ASC
+LIMIT 8
 ```
 
 이 조건은 네 개의 문처럼 동작한다.
