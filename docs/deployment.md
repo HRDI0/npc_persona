@@ -13,7 +13,10 @@ $env:NEO4J_PASSWORD="admin2026"
 $env:NEO4J_DATABASE="neo4j"
 $env:VLLM_URL="http://localhost:8000/v1/chat/completions"
 $env:MODEL_NAME="google/gemma-4-E2B-it"
+$env:CHAT_LOG_PATH="output/reports/streamlit_llm_interactions.jsonl"
 ```
+
+`CHAT_LOG_PATH`는 Streamlit 대화 로그 JSONL 경로다. 값을 지정하지 않으면 앱은 `output/reports/streamlit_llm_interactions.jsonl`에 선택 상태, 입력, 출력, 조회 chunk, 최종 프롬프트를 한 줄씩 기록한다.
 
 Neo4j가 떠 있는 상태에서 원천 데이터를 병합 적재한다.
 
@@ -45,7 +48,7 @@ git pull --ff-only origin main
 cp .env.example .env
 ```
 
-필요하면 `.env`의 `NEO4J_DATABASE`, `HF_TOKEN`, `HF_CACHE_DIR`, `VLLM_URL`, `MODEL_NAME`을 서버 환경에 맞게 수정한다. 실제 토큰과 비밀번호는 추적되지 않는 `.env`에만 둔다. 외부 vLLM 서버를 쓰는 경우에는 `VLLM_URL`을 해당 서버에서 접근 가능한 주소로 바꾼다. vLLM을 같은 Compose 프로젝트에서 띄우면 기본값 `http://vllm:8000/v1/chat/completions`를 그대로 사용할 수 있다.
+필요하면 `.env`의 `NEO4J_DATABASE`, `HF_TOKEN`, `HF_CACHE_DIR`, `VLLM_URL`, `MODEL_NAME`, `CHAT_LOG_PATH`를 서버 환경에 맞게 수정한다. 실제 토큰과 비밀번호는 추적되지 않는 `.env`에만 둔다. `CHAT_LOG_PATH`를 비워 두면 Streamlit은 `output/reports/streamlit_llm_interactions.jsonl`에 JSONL 상호작용 로그를 쓴다. 외부 vLLM 서버를 쓰는 경우에는 `VLLM_URL`을 해당 서버에서 접근 가능한 주소로 바꾼다. vLLM을 같은 Compose 프로젝트에서 띄우면 기본값 `http://vllm:8000/v1/chat/completions`를 그대로 사용할 수 있다.
 
 Streamlit 이미지를 빌드하고 Neo4j와 앱을 실행한다. 실제 서버 실행은 복사해 둔 `.env`를 사용한다.
 
@@ -76,7 +79,7 @@ docker compose --env-file .env run --rm streamlit uv run --frozen python src/db_
 이미 Neo4j와 Streamlit을 띄운 뒤 GPU가 있는 서버에서 vLLM만 추가로 띄우려면 다음을 사용한다.
 
 ```bash
-docker compose --profile gpu up -d vllm
+docker compose --env-file .env --profile gpu up -d vllm
 ```
 
 vLLM 설정은 서버에서 확인된 값에 맞춰져 있다.
