@@ -2,6 +2,8 @@
 
 이 문서는 현재 `rsc/data` 구조를 Neo4j에 적재하는 방법을 설명한다. 신규 NPC, 신규 퀘스트, 신규 clue/truth ID를 만들지 않고 기존 4명 NPC와 5개 퀘스트만 사용한다.
 
+Streamlit 런타임의 대화 JSONL 로그는 importer 리포트와 별개다. 런타임 로그 경로는 `CHAT_LOG_PATH`로 바꿀 수 있고, 기본값은 `output/reports/streamlit_llm_interactions.jsonl`이다.
+
 ## 1. 산출물 생성 후 CSV를 적재하는 경로
 
 ```bash
@@ -63,6 +65,18 @@ CSV 산출물이 아니라 Markdown/YAML 원천을 그대로 Neo4j에 넣고 싶
 python src/db_control/import_story_source_to_neo4j.py --source-dir rsc/data
 ```
 
+DB 접속 전에 원천 데이터, 관계 수, 검증 계약만 확인하려면 `--dry-run`을 사용한다. dry-run도 기본 리포트를 쓴다.
+
+```bash
+python src/db_control/import_story_source_to_neo4j.py --source-dir rsc/data --dry-run --database neo4j
+```
+
+운영 대상 DB를 명시하려면 `--database`를 사용한다. 값이 없으면 `NEO4J_DATABASE`를 읽고, 그 값도 없으면 Neo4j driver 기본 DB를 따른다. 리포트 위치는 `--report-path`로 바꿀 수 있으며 기본값은 `output/reports/neo4j_story_source_import_report.md`다.
+
+```bash
+python src/db_control/import_story_source_to_neo4j.py --source-dir rsc/data --database neo4j --report-path output/reports/neo4j_story_source_import_report.md
+```
+
 이 경로는 `KnowledgeChunk`를 만든다는 점이 중요하다. NPC 파일의 YAML frontmatter는 `NPC` 노드가 되고, 각 ```chunk 또는 ```story-chunk 블록은 `KnowledgeChunk` 노드가 된다.
 
 ## 4. `import_story_source_to_neo4j.py` 코드 흐름
@@ -81,8 +95,11 @@ python src/db_control/import_story_source_to_neo4j.py --source-dir rsc/data
 10. 같은 chunk는 `RELATED_TO`로 Quest에, `MENTIONS`로 Location에, `ABOUT`으로 Event에, `POINTS_TO`로 Clue에 연결된다.
 11. `load_npcs(source_dir)`는 `rsc/data/npcs/*.md`를 읽어 NPC 목록과 chunk 목록을 만든다.
 12. `load_locations`, `load_quests`, `load_world`는 locations/quests/world 디렉터리를 읽는다.
-13. `import_story_source(driver, source_dir, reset=False)`는 constraint를 만든 뒤 Role, Truth, Location, Event, Clue, Quest, NPC, KnowledgeChunk 순서로 적재한다.
-14. `--reset`은 전체 노드 삭제 옵션이다. 개발 DB를 명시적으로 초기화할 때만 써야 하며, 일반 적재에서는 사용하지 않는다.
+13. `import_story_source(driver, source_dir, reset=False, database=None, report_path=None)`는 constraint를 만든 뒤 Role, Truth, Location, Event, Clue, Quest, NPC, KnowledgeChunk 순서로 적재한다.
+14. `--dry-run`은 Neo4j 패키지나 DB 접속 없이 원천 데이터 검증, source count, relationship count, 리포트 생성을 수행한다.
+15. `--database`는 실행 쿼리에 적용할 Neo4j database 이름을 지정한다. 기본값은 `NEO4J_DATABASE`이며, 둘 다 없으면 driver 기본 DB를 쓴다.
+16. `--report-path`는 import summary Markdown 경로를 지정한다. 기본값은 `output/reports/neo4j_story_source_import_report.md`다.
+17. `--reset`은 전체 노드 삭제 옵션이다. 개발 DB를 명시적으로 초기화할 때만 써야 하며, 일반 적재에서는 사용하지 않는다.
 
 ## 5. Neo4j Browser 확인 쿼리
 
