@@ -12,7 +12,7 @@ $env:NEO4J_USER="neo4j"
 $env:NEO4J_PASSWORD="admin2026"
 $env:NEO4J_DATABASE="neo4j"
 $env:VLLM_URL="http://localhost:8000/v1/chat/completions"
-$env:MODEL_NAME="google/gemma-4-E2B-it"
+$env:MODEL_NAME="google/gemma-4-E4B-it"
 $env:CHAT_LOG_PATH="output/reports/streamlit_llm_interactions.jsonl"
 ```
 
@@ -86,7 +86,7 @@ vLLM 설정은 서버에서 확인된 값에 맞춰져 있다.
 
 ```text
 image: vllm/vllm-openai:latest
-model: google/gemma-4-E2B-it
+model: google/gemma-4-E4B-it
 port: 8000
 dtype: bfloat16
 max_model_len: 2048
@@ -119,7 +119,7 @@ placeholder clue가 없어야 한다.
 docker compose exec neo4j cypher-shell -u neo4j -p admin2026 "MATCH (c:Clue) WHERE c.name IS NULL RETURN c.clue_id AS placeholder_clue ORDER BY placeholder_clue"
 ```
 
-Streamlit은 기본적으로 서버 내부 또는 SSH 터널에서 `http://localhost:8501`로 확인한다. vLLM을 외부 서버에서 쓸 경우 `.env`의 `VLLM_URL`과 `MODEL_NAME=google/gemma-4-E2B-it`를 맞춘 뒤 `docker compose --env-file .env up -d streamlit`을 다시 실행한다.
+Streamlit은 기본적으로 서버 내부 또는 SSH 터널에서 `http://localhost:8501`로 확인한다. vLLM을 외부 서버에서 쓸 경우 `.env`의 `VLLM_URL`과 `MODEL_NAME=google/gemma-4-E4B-it`를 맞춘 뒤 `docker compose --env-file .env up -d streamlit`을 다시 실행한다.
 
 ## 산출물 재생성
 

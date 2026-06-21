@@ -24,7 +24,7 @@ services:
       NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
       PYTHONPATH: /app
       VLLM_URL: ${VLLM_URL:-http://vllm:8000/v1/chat/completions}
-      MODEL_NAME: ${MODEL_NAME:-google/gemma-4-E2B-it}
+      MODEL_NAME: ${MODEL_NAME:-google/gemma-4-E4B-it}
       CHAT_LOG_PATH: ${CHAT_LOG_PATH:-output/reports/streamlit_llm_interactions.jsonl}
     ports:
       - "127.0.0.1:8501:8501"
@@ -62,9 +62,9 @@ services:
       start_period: 10m
     command:
       - --model
-      - /models/gemma-4-E2B-it
+      - /models/gemma-4-E4B-it
       - --served-model-name
-      - ${VLLM_MODEL:-google/gemma-4-E2B-it}
+      - ${VLLM_MODEL:-google/gemma-4-E4B-it}
       - --host
       - 0.0.0.0
       - --port
@@ -75,13 +75,13 @@ services:
       - --gpu-memory-utilization
       - ${VLLM_GPU_MEMORY_UTILIZATION:-0.9}
       - --max-model-len
-      - ${VLLM_MAX_MODEL_LEN:-2048}
+      - ${VLLM_MAX_MODEL_LEN:-4096}
       - --enforce-eager
     ports:
       - "127.0.0.1:8000:8000"
     restart: unless-stopped
     volumes:
-      - ${LOCAL_MODEL_DIR:-./models/google-gemma-4-E2B-it}:/models/gemma-4-E2B-it:ro
+      - ${LOCAL_MODEL_DIR:-./models/google-gemma-4-E4B-it}:/models/gemma-4-E4B-it:ro
       - ${HF_CACHE_DIR:-./.hf-cache}:/root/.cache/huggingface
     deploy:
       resources:
