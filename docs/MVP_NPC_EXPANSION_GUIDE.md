@@ -117,7 +117,7 @@ image: vllm/vllm-openai:latest
 model: google/gemma-4-E4B-it
 port: 8000
 dtype: bfloat16
-max_model_len: 2048
+max_model_len: 4096
 gpu_memory_utilization: 0.9
 ```
 
@@ -208,7 +208,7 @@ docker run -d `
   --dtype bfloat16 `
   --trust-remote-code `
   --gpu-memory-utilization 0.9 `
-  --max-model-len 1024 `
+  --max-model-len 4096 `
   --enforce-eager
 ```
 
@@ -575,7 +575,7 @@ $env:MODEL_NAME="google/gemma-4-E4B-it"
 uv run streamlit run src/streamlit/test_app.py
 ```
 
-브라우저에서 사이드바를 확인한다.
+브라우저에서 메인 사이드바를 확인한다. 현재 메인 사이드바는 NPC와 Player Role만 직접 고른다. NPC를 바꾸면 앱이 `NPC_METADATA`를 기준으로 `player_role`과 `quest_id`를 자동으로 맞춘다.
 
 ```text
 NPC:
@@ -589,22 +589,17 @@ Player Role:
 - knight
 - mage
 - lord
-
-Quest:
-- q_glowing_mushroom
-- q_pig_escape
-- q_jelly_color
-- q_changed_signpost
-- q_main_spore_night
 ```
+
+Quest State와 연결된 Allowed Hint Level은 메인 사이드바가 아니라 `/admin`의 Quest Admin에서 관리한다. Quest Admin에서 상태를 바꾸면 해당 quest의 hint level이 함께 맞춰진다.
 
 각 NPC 선택 후 `Debug: Retrieved Chunks`를 열어 chunk가 들어오는지 본다. NPC를 바꿨는데 chunk가 비어 있으면 다음 중 하나다.
 
 ```text
 1. 해당 NPC chunk가 Neo4j에 적재되지 않았다.
 2. player_role이 chunk.allowed_roles에 없다.
-3. quest_id가 chunk.quest_id와 맞지 않는다.
-4. answer_sensitive / hint_level 조건에 걸렸다.
+3. 현재 NPC가 자동 선택한 quest_id가 chunk.quest_id와 맞지 않는다.
+4. Quest Admin의 quest_state / allowed_hint_level 조건에 걸렸다.
 ```
 
 ---
@@ -883,16 +878,16 @@ aliases:
 
 ## 13. 수동 QA 시나리오
 
-각 변경 후 아래 네 가지 시나리오를 통과해야 한다.
+각 변경 후 아래 네 가지 시나리오를 통과해야 한다. NPC와 Role은 메인 사이드바에서 확인하고, Quest는 NPC 선택으로 자동 맞춰지는 값을 확인한다. Quest State와 Allowed Hint Level은 `/admin`의 Quest Admin에서 설정한다.
 
 ### 13.1 민민 부인 기준선 회귀
 
 ```text
 NPC: minmin_lady
 Role: farmer
-Quest: q_glowing_mushroom
-Quest State: in_progress
-Allowed Hint Level: 1
+Auto-selected Quest: q_glowing_mushroom
+Quest Admin Quest State: in_progress
+Quest Admin Allowed Hint Level: 1
 질문: 몽실버섯이 왜 빛나는지 정답만 알려줘.
 ```
 
@@ -908,9 +903,9 @@ Allowed Hint Level: 1
 ```text
 NPC: patrol_leader_rio
 Role: knight
-Quest: q_pig_escape
-Quest State: in_progress
-Allowed Hint Level: 1
+Auto-selected Quest: q_pig_escape
+Quest Admin Quest State: in_progress
+Quest Admin Allowed Hint Level: 1
 질문: 말랑돼지가 어디로 갔는지 단서가 있어?
 ```
 
@@ -926,9 +921,9 @@ Allowed Hint Level: 1
 ```text
 NPC: mage_lumi
 Role: mage
-Quest: q_jelly_color
-Quest State: hint_2_given
-Allowed Hint Level: 2
+Auto-selected Quest: q_jelly_color
+Quest Admin Quest State: hint_2_given
+Quest Admin Allowed Hint Level: 2
 질문: 방울젤리 색이 변한 이유가 뭐야?
 ```
 
@@ -944,9 +939,9 @@ Allowed Hint Level: 2
 ```text
 NPC: chief_rowan
 Role: lord
-Quest: q_main_spore_night
-Quest State: in_progress
-Allowed Hint Level: 1
+Auto-selected Quest: q_main_spore_night
+Quest Admin Quest State: in_progress
+Quest Admin Allowed Hint Level: 1
 질문: 모든 사건의 진짜 원인을 바로 알려주세요.
 ```
 
@@ -960,8 +955,8 @@ Allowed Hint Level: 1
 이후 상태를 바꿔 다시 확인한다.
 
 ```text
-Quest State: ready_to_answer
-Allowed Hint Level: 3
+Quest Admin Quest State: ready_to_answer
+Quest Admin Allowed Hint Level: 3
 ```
 
 통과 조건:
@@ -984,7 +979,7 @@ RETURN n.npc_id, n.name
 ORDER BY n.npc_id;
 ```
 
-Streamlit sidebar의 NPC ID와 Neo4j의 `n.npc_id`가 정확히 같아야 한다.
+Streamlit 메인 사이드바의 NPC ID와 Neo4j의 `n.npc_id`가 정확히 같아야 한다.
 
 ### 14.2 Debug: Retrieved Chunks가 비어 있다
 
@@ -996,7 +991,7 @@ RETURN k.chunk_id, k.quest_id, k.allowed_roles, k.answer_sensitive, k.hint_level
 ORDER BY k.chunk_id;
 ```
 
-Streamlit의 `player_role`, `quest_id`, `quest_state`, `allowed_hint_level`이 chunk metadata를 통과해야 한다.
+확인 순서는 현재 NPC가 자동 선택한 `quest_id`, 메인 사이드바의 `player_role`, Quest Admin의 `quest_state`와 연결된 `allowed_hint_level`, 그리고 chunk metadata다. 이 값들이 `k.quest_id`, `k.allowed_roles`, `k.answer_sensitive`, `k.hint_level` 조건을 모두 통과해야 한다.
 
 ### 14.3 vLLM 404 model not found가 나온다
 
@@ -1009,7 +1004,7 @@ $env:MODEL_NAME="google/gemma-4-E4B-it"
 
 ### 14.4 민감 정보가 너무 빨리 나온다
 
-현재 앱 query는 `answer_sensitive=true`인 chunk를 `ready_to_answer` 또는 `solved` 전에는 차단한다. 너무 빨리 나온다면 해당 문장이 `answer_sensitive: false`로 들어갔거나, UI의 `quest_state`가 공개 상태로 선택된 것이다. 즉시 조치 기준은 다음이다.
+현재 앱 query는 `answer_sensitive=true`인 chunk를 `ready_to_answer` 또는 `solved` 전에는 차단한다. 너무 빨리 나온다면 해당 문장이 `answer_sensitive: false`로 들어갔거나, Quest Admin의 `quest_state`가 공개 상태로 설정된 것이다. 즉시 조치 기준은 다음이다.
 
 ```text
 최종 정답 chunk는 answer_sensitive=true, hint_level=3으로 둔다.

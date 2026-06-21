@@ -1,7 +1,15 @@
 import unittest
 from typing import final
 
-from src.streamlit.prompting import build_prompt, format_chunk_for_prompt, string_list
+from src.streamlit.prompting import (
+    build_prompt,
+    estimate_context_units,
+    estimate_prompt_units,
+    format_chunk_for_prompt,
+    format_memory_context,
+    string_list,
+    summarize_memory_turns,
+)
 
 
 @final
@@ -73,6 +81,69 @@ class StreamlitPromptingTest(unittest.TestCase):
         self.assertIn("회의에서 들은 내용만 말한다.", prompt)
         self.assertNotIn("RAW_SCOPE_SHOULD_NOT_APPEAR", prompt)
         self.assertNotIn("RAW_RESTRICTED_SHOULD_NOT_APPEAR", prompt)
+
+    def test_build_prompt_includes_prior_per_npc_memory_context(self):
+        prompt = build_prompt(
+            npc={
+                "name": "마도사 루미",
+                "role": "mage",
+                "personality": [],
+                "speech_style": [],
+                "dialogue_must": [],
+                "dialogue_must_not": [],
+            },
+            chunks=[{"title": "젤리", "text": "방울젤리는 마나 흐름에 반응한다."}],
+            user_message="전에 뭘 말했죠?",
+            quest_state="in_progress",
+            player_role="mage",
+            allowed_hint_level=1,
+            conversation_context="요약: 플레이어가 젤리 색 변화를 이미 물었다.",
+        )
+
+        self.assertIn("[이전 대화 기억]", prompt)
+        self.assertIn("요약: 플레이어가 젤리 색 변화를 이미 물었다.", prompt)
+        self.assertLess(prompt.index("[이전 대화 기억]"), prompt.index("[플레이어 질문]"))
+
+    def test_format_memory_context_uses_summary_and_recent_turns_without_fixed_policy_repetition(self):
+        context = format_memory_context(
+            summary="요약: 버섯 빛을 확인했다.",
+            recent_turns=[
+                {"speaker_label": "모험가", "content": "버섯은 어디 있나요?"},
+                {"speaker_label": "민민 부인", "content": "동쪽 밭 끝을 보세요."},
+            ],
+        )
+
+        self.assertIn("요약: 버섯 빛을 확인했다.", context)
+        self.assertIn("모험가: 버섯은 어디 있나요?", context)
+        self.assertIn("민민 부인: 동쪽 밭 끝을 보세요.", context)
+        self.assertNotIn("너는 게임 속 NPC다", context)
+        self.assertNotIn("[응답 정책]", context)
+
+    def test_summarize_memory_turns_is_deterministic_and_local(self):
+        turns = [
+            {"speaker_label": "모험가", "content": "첫 질문"},
+            {"speaker_label": "민민 부인", "content": "첫 답변"},
+            {"speaker_label": "모험가", "content": "둘째 질문"},
+        ]
+
+        first = summarize_memory_turns(turns)
+        second = summarize_memory_turns(turns)
+
+        self.assertEqual(first, second)
+        self.assertIn("모험가: 첫 질문", first)
+        self.assertIn("민민 부인: 첫 답변", first)
+        self.assertNotIn("LLM", first)
+
+    def test_estimate_context_units_counts_text_for_compaction_thresholds(self):
+        turns = [
+            {"speaker_label": "모험가", "content": "12345"},
+            {"speaker_label": "민민 부인", "content": "67890"},
+        ]
+
+        self.assertGreaterEqual(estimate_context_units(turns), 10)
+
+    def test_estimate_prompt_units_counts_full_prompt_text(self):
+        self.assertEqual(len("전체 프롬프트 abc"), estimate_prompt_units("전체 프롬프트 abc"))
 
     def test_string_list_filters_to_strings(self):
         self.assertEqual(string_list(["a", 1, None, "b"]), ["a", "b"])

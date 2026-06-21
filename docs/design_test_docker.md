@@ -27,7 +27,7 @@ Copy-Item .env.design-test.example .env.design-test
 $env:VLLM_MODEL="google/gemma-4-E4B-it"
 $env:LOCAL_MODEL_DIR="./models/google-gemma-4-E4B-it"
 $env:VLLM_GPU_MEMORY_UTILIZATION="0.9"
-$env:VLLM_MAX_MODEL_LEN="2048"
+$env:VLLM_MAX_MODEL_LEN="4096"
 .\scripts\download_model.ps1
 ```
 

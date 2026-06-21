@@ -43,7 +43,7 @@ class DeploymentContractTest(unittest.TestCase):
 
         vllm_command = cast(list[str], services["vllm"]["command"])
         self.assertIn("${VLLM_GPU_MEMORY_UTILIZATION:-0.9}", vllm_command)
-        self.assertIn("${VLLM_MAX_MODEL_LEN:-2048}", vllm_command)
+        self.assertIn("${VLLM_MAX_MODEL_LEN:-4096}", vllm_command)
 
     def test_local_vllm_services_expose_readiness_before_streamlit_uses_them(self):
         for compose_name in ["compose.yaml", "compose.design-test.yaml"]:
@@ -137,7 +137,7 @@ class DeploymentContractTest(unittest.TestCase):
         self.assertIn("--served-model-name", vllm_command)
         self.assertIn(TARGET_MODEL, vllm_command)
         self.assertIn("${VLLM_GPU_MEMORY_UTILIZATION:-0.9}", vllm_command)
-        self.assertIn("${VLLM_MAX_MODEL_LEN:-2048}", vllm_command)
+        self.assertIn("${VLLM_MAX_MODEL_LEN:-4096}", vllm_command)
         self.assertIn("${LOCAL_MODEL_DIR:-./models/google-gemma-4-E4B-it}:/models/gemma-4-E4B-it:ro", vllm_volumes)
 
     def test_design_test_docs_env_and_download_script_exist(self):
@@ -159,7 +159,7 @@ class DeploymentContractTest(unittest.TestCase):
         self.assertIn("NEO4J_DATABASE=neo4j", default_env_example)
         self.assertIn("LOCAL_MODEL_DIR=./models/google-gemma-4-E4B-it", env_example)
         self.assertIn("VLLM_GPU_MEMORY_UTILIZATION=0.9", env_example)
-        self.assertIn("VLLM_MAX_MODEL_LEN=2048", env_example)
+        self.assertIn("VLLM_MAX_MODEL_LEN=4096", env_example)
         hf_token_lines = [
             line
             for line in default_env_example.splitlines()

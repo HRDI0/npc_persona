@@ -1,3 +1,4 @@
+from collections.abc import Mapping, Sequence
 from typing import cast
 
 
@@ -47,6 +48,54 @@ def format_chunk_for_prompt(chunk: dict[str, object]) -> str:
     return f"참고 내용:\n{text}"
 
 
+def estimate_context_units(turns: Sequence[Mapping[str, object]]) -> int:
+    total = 0
+    for turn in turns:
+        total += len(str(turn.get("speaker_label", "")))
+        total += len(str(turn.get("content", "")))
+    return total
+
+
+def estimate_prompt_units(prompt: str) -> int:
+    return len(prompt)
+
+
+def summarize_memory_turns(turns: Sequence[Mapping[str, object]]) -> str:
+    if not turns:
+        return "요약: 이전 대화 없음."
+
+    lines: list[str] = []
+    for turn in turns[:12]:
+        speaker = str(turn.get("speaker_label", "알 수 없음")).strip() or "알 수 없음"
+        content = str(turn.get("content", "")).strip().replace("\n", " ")
+        if content:
+            lines.append(f"{speaker}: {content[:160]}")
+
+    if len(turns) > 12:
+        lines.append(f"추가 대화 {len(turns) - 12}개 생략")
+
+    return "요약: " + " / ".join(lines)
+
+
+def format_memory_context(summary: str, recent_turns: Sequence[Mapping[str, object]]) -> str:
+    parts: list[str] = []
+    clean_summary = summary.strip()
+    if clean_summary:
+        parts.append(clean_summary)
+
+    recent_lines: list[str] = []
+    for turn in recent_turns:
+        speaker = str(turn.get("speaker_label", "알 수 없음")).strip() or "알 수 없음"
+        content = str(turn.get("content", "")).strip()
+        if content:
+            recent_lines.append(f"{speaker}: {content}")
+
+    if recent_lines:
+        parts.append("최근 대화:\n" + "\n".join(recent_lines))
+
+    return "\n\n".join(parts)
+
+
 def build_prompt(
     npc: dict[str, object],
     chunks: list[dict[str, object]],
@@ -54,6 +103,7 @@ def build_prompt(
     quest_state: str,
     player_role: str,
     allowed_hint_level: int,
+    conversation_context: str = "",
 ) -> str:
     chunk_text = "\n\n".join(format_chunk_for_prompt(chunk) for chunk in chunks)
 
@@ -63,6 +113,14 @@ def build_prompt(
     npc_role = display_label(npc.get("role"), ROLE_LABELS)
     player_role_label = display_label(player_role, ROLE_LABELS)
     quest_state_label = display_label(quest_state, QUEST_STATE_LABELS)
+    memory_section = ""
+
+    if conversation_context.strip():
+        memory_section = f"""
+
+[이전 대화 기억]
+{conversation_context.strip()}
+"""
 
     return f"""
 너는 게임 속 NPC다. 현재 NPC는 "{npc.get("name")}"이다.
@@ -87,6 +145,7 @@ def build_prompt(
 플레이어 역할: {player_role_label}
 퀘스트 진행: {quest_state_label}
 현재 줄 수 있는 힌트 단계: {allowed_hint_level}
+{memory_section}
 
 [사용 가능한 지식]
 {chunk_text}
