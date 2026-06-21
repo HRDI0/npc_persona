@@ -12,6 +12,7 @@ rsc/data/                         원천 데이터
 scripts/story_pipeline/           산출물 생성 파이프라인
 src/db_control/import_story_source_to_neo4j.py
 src/streamlit/test_app.py
+src/streamlit/pages/admin.py
 output/reports/                   생성 리포트
 output/integrated/                생성 통합 YAML/JSON
 output/neo4j_import/              생성 Neo4j CSV/Cypher
@@ -19,6 +20,10 @@ docs/presentation/                발표용 HTML deck
 ```
 
 보강 자료는 별도 `output/expanded` 폴더가 아니라 기존 `rsc/data/quests/*.yaml`의 `story_expansion`에 통합합니다. `output/`은 재생성 가능한 보고서와 Neo4j import 산출물만 둡니다.
+
+Streamlit 런타임은 `src/streamlit/test_app.py`의 메인 NPC 채팅 앱과 `src/streamlit/pages/admin.py`의 별도 Admin 페이지로 나뉩니다. NPC 선택은 각 NPC 메타데이터에 맞춰 `player_role`과 `quest_id`를 자동 동기화합니다. 사이드바에는 `Debug: Retrieved Chunks`, `Debug: Prompt`, `Debug: Runtime` popover와 NPC별 세션 메모리 요약이 표시됩니다. 대화 메모리는 세션 안에서만 NPC별로 유지하며, 프롬프트 컨텍스트는 `4096 * 0.9` 토큰 기준을 넘으면 최근 턴을 요약해 압축합니다.
+
+Admin 페이지는 `Memory Admin`, `Quest Admin`, `Concept Story Admin` 탭을 제공합니다. `Concept Story Admin`에서는 `ConceptStory` 노드 확인과 `MERGE` 적재 폼을 사용합니다.
 
 ## 로컬 산출물 생성
 
@@ -88,9 +93,14 @@ NEO4J_PASSWORD=<your-password>
 NEO4J_DATABASE=neo4j
 MODEL_NAME=google/gemma-4-E4B-it
 CHAT_LOG_PATH=output/reports/streamlit_llm_interactions.jsonl
+RETRIEVAL_LOG_PATH=output/reports/streamlit_retrieval_events.jsonl
+PROMPT_LOG_PATH=output/reports/streamlit_prompt_events.jsonl
+MEMORY_LOG_PATH=output/reports/streamlit_memory_events.jsonl
+ADMIN_LOG_PATH=output/reports/streamlit_admin_events.jsonl
+NEO4J_IMPORT_LOG_PATH=output/reports/streamlit_neo4j_import_events.jsonl
 ```
 
-Streamlit은 대화 선택값, 사용자 입력, 모델 출력, 조회 chunk, 최종 프롬프트를 JSONL로 남깁니다. `CHAT_LOG_PATH`를 바꾸지 않으면 기본 경로는 `output/reports/streamlit_llm_interactions.jsonl`입니다.
+Streamlit 로그는 기능별 JSONL로 나뉩니다. `CHAT_LOG_PATH`는 대화, `RETRIEVAL_LOG_PATH`는 조회 chunk, `PROMPT_LOG_PATH`는 최종 프롬프트, `MEMORY_LOG_PATH`는 세션 메모리 압축, `ADMIN_LOG_PATH`는 Admin 조작, `NEO4J_IMPORT_LOG_PATH`는 Neo4j 적재 이벤트를 기록합니다. 각 레코드에는 `timestamp_ms`가 포함됩니다.
 
 외부 vLLM 서버를 쓰면 `VLLM_URL`을 해당 서버에서 접근 가능한 주소로 바꿉니다. 같은 Compose 프로젝트에서 GPU vLLM까지 띄우는 서버라면 기본값 `http://vllm:8000/v1/chat/completions`를 그대로 둡니다.
 

@@ -14,9 +14,14 @@ $env:NEO4J_DATABASE="neo4j"
 $env:VLLM_URL="http://localhost:8000/v1/chat/completions"
 $env:MODEL_NAME="google/gemma-4-E4B-it"
 $env:CHAT_LOG_PATH="output/reports/streamlit_llm_interactions.jsonl"
+$env:RETRIEVAL_LOG_PATH="output/reports/streamlit_retrieval_events.jsonl"
+$env:PROMPT_LOG_PATH="output/reports/streamlit_prompts.jsonl"
+$env:MEMORY_LOG_PATH="output/reports/streamlit_memory_events.jsonl"
+$env:ADMIN_LOG_PATH="output/reports/streamlit_admin_events.jsonl"
+$env:NEO4J_IMPORT_LOG_PATH="output/reports/streamlit_neo4j_import_events.jsonl"
 ```
 
-`CHAT_LOG_PATH`는 Streamlit 대화 로그 JSONL 경로다. 값을 지정하지 않으면 앱은 `output/reports/streamlit_llm_interactions.jsonl`에 선택 상태, 입력, 출력, 조회 chunk, 최종 프롬프트를 한 줄씩 기록한다.
+Streamlit 런타임 로그는 기능별 JSONL 파일로 나뉜다. `CHAT_LOG_PATH`는 대화 입출력, `RETRIEVAL_LOG_PATH`는 조회 chunk, `PROMPT_LOG_PATH`는 최종 프롬프트, `MEMORY_LOG_PATH`는 메모리 이벤트, `ADMIN_LOG_PATH`는 관리자 동작, `NEO4J_IMPORT_LOG_PATH`는 관리자 Neo4j import 이벤트를 기록한다. 각 JSONL record에는 `timestamp_ms`가 포함된다.
 
 Neo4j가 떠 있는 상태에서 원천 데이터를 병합 적재한다.
 
@@ -48,7 +53,7 @@ git pull --ff-only origin main
 cp .env.example .env
 ```
 
-필요하면 `.env`의 `NEO4J_DATABASE`, `HF_TOKEN`, `HF_CACHE_DIR`, `VLLM_URL`, `MODEL_NAME`, `CHAT_LOG_PATH`를 서버 환경에 맞게 수정한다. 실제 토큰과 비밀번호는 추적되지 않는 `.env`에만 둔다. `CHAT_LOG_PATH`를 비워 두면 Streamlit은 `output/reports/streamlit_llm_interactions.jsonl`에 JSONL 상호작용 로그를 쓴다. 외부 vLLM 서버를 쓰는 경우에는 `VLLM_URL`을 해당 서버에서 접근 가능한 주소로 바꾼다. vLLM을 같은 Compose 프로젝트에서 띄우면 기본값 `http://vllm:8000/v1/chat/completions`를 그대로 사용할 수 있다.
+필요하면 `.env`의 `NEO4J_DATABASE`, `HF_TOKEN`, `HF_CACHE_DIR`, `VLLM_URL`, `MODEL_NAME`과 로그 경로를 서버 환경에 맞게 수정한다. 지원되는 Streamlit 로그 경로는 `CHAT_LOG_PATH`, `RETRIEVAL_LOG_PATH`, `PROMPT_LOG_PATH`, `MEMORY_LOG_PATH`, `ADMIN_LOG_PATH`, `NEO4J_IMPORT_LOG_PATH`다. 실제 토큰과 비밀번호는 추적되지 않는 `.env`에만 둔다. 로그 경로를 비워 두면 Streamlit은 `output/reports/` 아래 기본 JSONL 파일을 사용하고, 각 record에 `timestamp_ms`를 남긴다. 외부 vLLM 서버를 쓰는 경우에는 `VLLM_URL`을 해당 서버에서 접근 가능한 주소로 바꾼다. vLLM을 같은 Compose 프로젝트에서 띄우면 기본값 `http://vllm:8000/v1/chat/completions`를 그대로 사용할 수 있다.
 
 Streamlit 이미지를 빌드하고 Neo4j와 앱을 실행한다. 실제 서버 실행은 복사해 둔 `.env`를 사용한다.
 
@@ -89,9 +94,11 @@ image: vllm/vllm-openai:latest
 model: google/gemma-4-E4B-it
 port: 8000
 dtype: bfloat16
-max_model_len: 2048
+max_model_len: 4096
 gpu_memory_utilization: 0.9
 ```
+
+vLLM 컨테이너는 Compose에서 OpenAI 호환 API를 제공하는 용도다. GPU 메모리와 모델 권한은 서버 환경에 따라 달라지므로, 외부 vLLM을 이미 운영 중이면 `VLLM_URL`만 그 주소로 맞추고 Streamlit/Neo4j 스택과 분리해도 된다.
 
 ## 검증 명령
 
@@ -119,7 +126,7 @@ placeholder clue가 없어야 한다.
 docker compose exec neo4j cypher-shell -u neo4j -p admin2026 "MATCH (c:Clue) WHERE c.name IS NULL RETURN c.clue_id AS placeholder_clue ORDER BY placeholder_clue"
 ```
 
-Streamlit은 기본적으로 서버 내부 또는 SSH 터널에서 `http://localhost:8501`로 확인한다. vLLM을 외부 서버에서 쓸 경우 `.env`의 `VLLM_URL`과 `MODEL_NAME=google/gemma-4-E4B-it`를 맞춘 뒤 `docker compose --env-file .env up -d streamlit`을 다시 실행한다.
+Streamlit은 기본적으로 서버 내부 또는 SSH 터널에서 `http://localhost:8501`로 확인한다. multipage 앱의 관리자 화면은 `http://localhost:8501/admin`에서 접근하며, Memory Admin, Quest Admin, Concept Story Admin을 포함한다. vLLM을 외부 서버에서 쓸 경우 `.env`의 `VLLM_URL`과 `MODEL_NAME=google/gemma-4-E4B-it`를 맞춘 뒤 `docker compose --env-file .env up -d streamlit`을 다시 실행한다.
 
 ## 산출물 재생성
 

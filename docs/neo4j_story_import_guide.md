@@ -2,7 +2,9 @@
 
 이 문서는 현재 `rsc/data` 구조를 Neo4j에 적재하는 방법을 설명한다. 신규 NPC, 신규 퀘스트, 신규 clue/truth ID를 만들지 않고 기존 4명 NPC와 5개 퀘스트만 사용한다.
 
-Streamlit 런타임의 대화 JSONL 로그는 importer 리포트와 별개다. 런타임 로그 경로는 `CHAT_LOG_PATH`로 바꿀 수 있고, 기본값은 `output/reports/streamlit_llm_interactions.jsonl`이다.
+Importer 리포트와 Streamlit 런타임/관리자 JSONL 로그는 별개다. 원천 importer는 Markdown 리포트를 `output/reports/neo4j_story_source_import_report.md`에 쓰고, Streamlit은 기능별 JSONL 로그를 `CHAT_LOG_PATH`, `RETRIEVAL_LOG_PATH`, `PROMPT_LOG_PATH`, `MEMORY_LOG_PATH`, `ADMIN_LOG_PATH`, `NEO4J_IMPORT_LOG_PATH`로 나눠 기록한다. Streamlit JSONL record에는 `timestamp_ms`가 포함된다.
+
+Streamlit multipage 앱의 `/admin` 화면에는 Memory Admin, Quest Admin, Concept Story Admin이 있다. Concept Story Admin의 import/check 기능은 기존 퀘스트 원천과 분리된 standalone `ConceptStory` 노드를 다루며, 관리자 동작은 `ADMIN_LOG_PATH`, Neo4j import/check 이벤트는 `NEO4J_IMPORT_LOG_PATH`에 기록한다.
 
 ## 1. 산출물 생성 후 CSV를 적재하는 경로
 
