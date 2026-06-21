@@ -287,7 +287,7 @@ class PresentationArtifactContract(unittest.TestCase):
             "NEO4J_PASSWORD",
             "VLLM_URL",
             "MODEL_NAME",
-            "google/gemma-4-E2B-it",
+            "google/gemma-4-E4B-it",
         ]
 
         for text in required:

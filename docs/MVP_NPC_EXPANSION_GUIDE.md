@@ -114,14 +114,14 @@ Get-Content -LiteralPath "data_export\vllm\process_cmdline.txt"
 
 ```text
 image: vllm/vllm-openai:latest
-model: google/gemma-4-E2B-it
+model: google/gemma-4-E4B-it
 port: 8000
 dtype: bfloat16
 max_model_len: 2048
 gpu_memory_utilization: 0.9
 ```
 
-`src/streamlit/test_app.py`의 기본 모델명은 설계 검증용 served model인 `google/gemma-4-E2B-it`로 맞춘 상태다. 다른 모델명으로 호출하면 404가 날 수 있다.
+`src/streamlit/test_app.py`의 기본 모델명은 설계 검증용 served model인 `google/gemma-4-E4B-it`로 맞춘 상태다. 다른 모델명으로 호출하면 404가 날 수 있다.
 
 ---
 
@@ -197,12 +197,12 @@ docker run -d `
   --gpus all `
   --name vllm-gemma `
   -p 127.0.0.1:8000:8000 `
-  -v "${PWD}\models\google-gemma-4-E2B-it:/models/gemma-4-E2B-it:ro" `
+  -v "${PWD}\models\google-gemma-4-E4B-it:/models/gemma-4-E4B-it:ro" `
   -v "${PWD}\.hf-cache:/root/.cache/huggingface" `
   -e HF_TOKEN=$env:HF_TOKEN `
   vllm/vllm-openai:latest `
-  --model /models/gemma-4-E2B-it `
-  --served-model-name google/gemma-4-E2B-it `
+  --model /models/gemma-4-E4B-it `
+  --served-model-name google/gemma-4-E4B-it `
   --host 0.0.0.0 `
   --port 8000 `
   --dtype bfloat16 `
@@ -229,7 +229,7 @@ Invoke-RestMethod -Uri "http://localhost:8000/v1/models"
 
 ```powershell
 $body = @{
-  model = "google/gemma-4-E2B-it"
+  model = "google/gemma-4-E4B-it"
   messages = @(
     @{ role = "user"; content = "헤이즐 마을 NPC처럼 한 문장으로 인사해줘." }
   )
@@ -563,14 +563,14 @@ WHERE
 
 ## 9. Streamlit 앱을 실행한다
 
-항상 환경변수를 명시한다. 특히 `MODEL_NAME`은 `google/gemma-4-E2B-it`로 맞춘다.
+항상 환경변수를 명시한다. 특히 `MODEL_NAME`은 `google/gemma-4-E4B-it`로 맞춘다.
 
 ```powershell
 $env:NEO4J_URI="bolt://localhost:7687"
 $env:NEO4J_USER="neo4j"
 $env:NEO4J_PASSWORD="admin2026"
 $env:VLLM_URL="http://localhost:8000/v1/chat/completions"
-$env:MODEL_NAME="google/gemma-4-E2B-it"
+$env:MODEL_NAME="google/gemma-4-E4B-it"
 
 uv run streamlit run src/streamlit/test_app.py
 ```
@@ -1004,7 +1004,7 @@ Streamlit의 `player_role`, `quest_id`, `quest_state`, `allowed_hint_level`이 c
 
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8000/v1/models"
-$env:MODEL_NAME="google/gemma-4-E2B-it"
+$env:MODEL_NAME="google/gemma-4-E4B-it"
 ```
 
 ### 14.4 민감 정보가 너무 빨리 나온다
@@ -1024,7 +1024,7 @@ hint_2에서 말할 수 있는 내용은 answer_sensitive=false로 두고 표현
 
 ```text
 1. Neo4j dump를 복원하거나, rsc/data importer 경로를 선택한다.
-2. vLLM을 google/gemma-4-E2B-it로 실행하고 /v1/models를 확인한다.
+2. vLLM을 google/gemma-4-E4B-it로 실행하고 /v1/models를 확인한다.
 3. 환경변수 NEO4J_PASSWORD, MODEL_NAME을 명시한다.
 4. importer 파싱 수를 확인한다.
 5. chunk fence를 story-chunk로 통일하거나 importer regex를 확장한다.

@@ -86,7 +86,7 @@ nano .env
 ```bash
 NEO4J_PASSWORD=<your-password>
 NEO4J_DATABASE=neo4j
-MODEL_NAME=google/gemma-4-E2B-it
+MODEL_NAME=google/gemma-4-E4B-it
 CHAT_LOG_PATH=output/reports/streamlit_llm_interactions.jsonl
 ```
 

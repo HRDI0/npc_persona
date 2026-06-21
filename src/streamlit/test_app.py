@@ -19,7 +19,7 @@ NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "admin2026")
 
 VLLM_URL = os.getenv("VLLM_URL", "http://localhost:8000/v1/chat/completions")
-MODEL_NAME = os.getenv("MODEL_NAME", "google/gemma-4-E2B-it")
+MODEL_NAME = os.getenv("MODEL_NAME", "google/gemma-4-E4B-it")
 CHAT_LOG_PATH = Path(os.getenv("CHAT_LOG_PATH", "output/reports/streamlit_llm_interactions.jsonl"))
 
 DEFAULT_NPC_ID = "minmin_lady"

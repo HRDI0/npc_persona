@@ -8,11 +8,11 @@ param(
 $ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrWhiteSpace($ModelId)) {
-    $ModelId = "google/gemma-4-E2B-it"
+    $ModelId = "google/gemma-4-E4B-it"
 }
 
 if ([string]::IsNullOrWhiteSpace($LocalDir)) {
-    $LocalDir = "models/google-gemma-4-E2B-it"
+    $LocalDir = "models/google-gemma-4-E4B-it"
 }
 
 $ResolvedDir = Join-Path (Get-Location) $LocalDir

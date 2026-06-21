@@ -7,7 +7,7 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
-TARGET_MODEL = "google/gemma-4-E2B-it"
+TARGET_MODEL = "google/gemma-4-E4B-it"
 
 
 @final
@@ -133,12 +133,12 @@ class DeploymentContractTest(unittest.TestCase):
         vllm = services["vllm"]
         vllm_command = cast(list[str], vllm["command"])
         vllm_volumes = cast(list[str], vllm["volumes"])
-        self.assertIn("/models/gemma-4-E2B-it", vllm_command)
+        self.assertIn("/models/gemma-4-E4B-it", vllm_command)
         self.assertIn("--served-model-name", vllm_command)
         self.assertIn(TARGET_MODEL, vllm_command)
         self.assertIn("${VLLM_GPU_MEMORY_UTILIZATION:-0.9}", vllm_command)
         self.assertIn("${VLLM_MAX_MODEL_LEN:-2048}", vllm_command)
-        self.assertIn("${LOCAL_MODEL_DIR:-./models/google-gemma-4-E2B-it}:/models/gemma-4-E2B-it:ro", vllm_volumes)
+        self.assertIn("${LOCAL_MODEL_DIR:-./models/google-gemma-4-E4B-it}:/models/gemma-4-E4B-it:ro", vllm_volumes)
 
     def test_design_test_docs_env_and_download_script_exist(self):
         for relative_path in [
@@ -157,7 +157,7 @@ class DeploymentContractTest(unittest.TestCase):
         self.assertIn(f"VLLM_MODEL={TARGET_MODEL}", env_example)
         self.assertIn("NEO4J_DATABASE=neo4j", env_example)
         self.assertIn("NEO4J_DATABASE=neo4j", default_env_example)
-        self.assertIn("LOCAL_MODEL_DIR=./models/google-gemma-4-E2B-it", env_example)
+        self.assertIn("LOCAL_MODEL_DIR=./models/google-gemma-4-E4B-it", env_example)
         self.assertIn("VLLM_GPU_MEMORY_UTILIZATION=0.9", env_example)
         self.assertIn("VLLM_MAX_MODEL_LEN=2048", env_example)
         hf_token_lines = [
@@ -212,8 +212,8 @@ class DeploymentContractTest(unittest.TestCase):
         self.assertIn(f"MODEL_NAME=\"{TARGET_MODEL}\"", guide)
         self.assertNotIn("湲곕낯 紐⑤뜽紐낆씠 `google/gemma-4-E4B`", guide)
         self.assertIn("--model", guide)
-        self.assertIn("/models/gemma-4-E2B-it", guide)
-        self.assertIn("/models/gemma-4-E2B-it:ro", guide)
+        self.assertIn("/models/gemma-4-E4B-it", guide)
+        self.assertIn("/models/gemma-4-E4B-it:ro", guide)
         self.assertIn("KnowledgeChunks: 26", guide)
 
 

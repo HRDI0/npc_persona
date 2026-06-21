@@ -24,8 +24,8 @@
 
 ```powershell
 Copy-Item .env.design-test.example .env.design-test
-$env:VLLM_MODEL="google/gemma-4-E2B-it"
-$env:LOCAL_MODEL_DIR="./models/google-gemma-4-E2B-it"
+$env:VLLM_MODEL="google/gemma-4-E4B-it"
+$env:LOCAL_MODEL_DIR="./models/google-gemma-4-E4B-it"
 $env:VLLM_GPU_MEMORY_UTILIZATION="0.9"
 $env:VLLM_MAX_MODEL_LEN="2048"
 .\scripts\download_model.ps1
@@ -38,7 +38,7 @@ $env:HF_TOKEN="hf_..."
 .\scripts\download_model.ps1
 ```
 
-다운로드 결과는 `models/google-gemma-4-E2B-it`에 둔다. `models/`는 git과 Docker build context에서 제외한다.
+다운로드 결과는 `models/google-gemma-4-E4B-it`에 둔다. `models/`는 git과 Docker build context에서 제외한다.
 
 ## Windows Docker Desktop 설계 검증 실행
 
@@ -64,7 +64,7 @@ vLLM API: http://localhost:18000/v1/models
 
 ## Ubuntu 운영 서버 적용 방식
 
-운영 서버에 기존 Neo4j/vLLM 컨테이너가 이미 있으면 `compose.design-test.yaml`를 운영 스택으로 쓰지 않는다. 운영에서는 기존 컨테이너 주소에 맞춰 Streamlit의 `NEO4J_URI`, `VLLM_URL`, `MODEL_NAME=google/gemma-4-E2B-it`만 맞춘다.
+운영 서버에 기존 Neo4j/vLLM 컨테이너가 이미 있으면 `compose.design-test.yaml`를 운영 스택으로 쓰지 않는다. 운영에서는 기존 컨테이너 주소에 맞춰 Streamlit의 `NEO4J_URI`, `VLLM_URL`, `MODEL_NAME=google/gemma-4-E4B-it`만 맞춘다.
 
 분리 검증이 필요할 때만 `compose.design-test.yaml`를 실행한다. host port가 다르기 때문에 기존 Neo4j/vLLM 컨테이너와 동시에 떠 있어도 충돌하지 않는다.
 모든 host port는 `127.0.0.1`에 바인딩되어 Windows Docker Desktop 로컬 검증용으로만 열린다.

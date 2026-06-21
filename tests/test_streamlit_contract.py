@@ -22,7 +22,7 @@ class StreamlitContractTest(unittest.TestCase):
             source,
         )
         self.assertIn(
-            'MODEL_NAME = os.getenv("MODEL_NAME", "google/gemma-4-E2B-it")',
+            'MODEL_NAME = os.getenv("MODEL_NAME", "google/gemma-4-E4B-it")',
             source,
         )
 
