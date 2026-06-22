@@ -5,7 +5,31 @@ from typing import cast
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PRESENTATION_DIR = ROOT / "docs" / "presentation"
+DOCS_DIR = ROOT / "docs"
+PRESENTATION_DIR = DOCS_DIR / "presentation"
+AFFINE_DIR = DOCS_DIR / "affine"
+
+
+FORBIDDEN_PUBLIC_TERMS = [
+    "127.0.0.1",
+    "localhost",
+    "bolt://",
+    "/v1/models",
+    "http://vllm:8000",
+    "google/gemma-4-E2B-it",
+    "google/gemma-4-E4B-it",
+    "max_model_len",
+    "VLLM_GPU_MEMORY_UTILIZATION",
+    "VLLM_MAX_MODEL_LEN",
+    "current main compose",
+    "design-test stack access details",
+    "neo4j / admin2026",
+    "http://127.0.0.1:17474",
+    "http://127.0.0.1:8501",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:18501",
+    "http://127.0.0.1:18000",
+]
 
 
 class PresentationArtifactContract(unittest.TestCase):
@@ -25,7 +49,7 @@ class PresentationArtifactContract(unittest.TestCase):
 
         self.assertEqual(missing, [], f"missing presentation artifact files: {missing}")
 
-    def test_slide_count_matches_latest_handoff_scope(self):
+    def test_slide_count_matches_detailed_portfolio_scope(self):
         html = self.read_html()
         slide_count = html.count('<section class="slide')
         counter_match = re.search(r'<span id="slideCounter">1 / (\d+)</span>', html)
@@ -35,9 +59,121 @@ class PresentationArtifactContract(unittest.TestCase):
 
         self.assertEqual(slide_count, int(counter_match.group(1)))
         self.assertGreaterEqual(slide_count, 30)
-        self.assertLessEqual(slide_count, 80)
+        self.assertLessEqual(slide_count, 50)
 
-    def test_every_slide_contains_detailed_explanation(self):
+    def test_public_deck_uses_detailed_architecture_storyline(self):
+        html = self.read_html()
+        required = [
+            'data-slide-id="portfolio-cover"',
+            'data-slide-id="portfolio-thesis"',
+            'data-slide-id="problem-boundary"',
+            'data-slide-id="portfolio-scope"',
+            'data-slide-id="system-map"',
+            'data-slide-id="story-data-sources"',
+            'data-slide-id="story-chunk-metadata"',
+            'data-slide-id="data-splitting-criteria"',
+            'data-slide-id="loading-validation-criteria"',
+            'data-slide-id="neo4j-design-goals"',
+            'data-slide-id="neo4j-node-model"',
+            'data-slide-id="neo4j-relationship-model"',
+            'data-slide-id="neo4j-design-process"',
+            'data-slide-id="neo4j-overview-evidence"',
+            'data-slide-id="neo4j-quest-evidence"',
+            'data-slide-id="npc-minmin-graph-evidence"',
+            'data-slide-id="npc-rio-graph-evidence"',
+            'data-slide-id="npc-lumi-graph-evidence"',
+            'data-slide-id="npc-rowan-graph-evidence"',
+            'data-slide-id="access-control-model"',
+            'data-slide-id="retrieval-query-gates"',
+            'data-slide-id="retrieval-sort-limit"',
+            'data-slide-id="retrieval-debug-evidence"',
+            'data-slide-id="prompt-assembly"',
+            'data-slide-id="prompt-metadata-hiding"',
+            'data-slide-id="prompt-leak-mitigation"',
+            'data-slide-id="phrase-repetition-mitigation"',
+            'data-slide-id="prompt-debug-evidence"',
+            'data-slide-id="session-memory-model"',
+            'data-slide-id="memory-compaction-path"',
+            'data-slide-id="memory-admin-evidence"',
+            'data-slide-id="quest-admin-evidence"',
+            'data-slide-id="concept-story-admin-evidence"',
+            'data-slide-id="admin-tab-separation"',
+            'data-slide-id="runtime-chat-evidence"',
+            'data-slide-id="npc-query-minmin-evidence"',
+            'data-slide-id="npc-query-rio-evidence"',
+            'data-slide-id="npc-query-lumi-evidence"',
+            'data-slide-id="npc-query-rowan-evidence"',
+            'data-slide-id="outcomes-limits-next"',
+            'data-slide-id="source-to-graph"',
+            "기술 포트폴리오",
+            "Story Data Architecture",
+            "GraphRAG",
+            "Neo4j",
+            "KnowledgeChunk",
+            "인물별",
+            "퀘스트별",
+            "정보 접근 권한",
+            "메모리 기능",
+            "요약 저장 프로세스",
+            "Memory Admin",
+            "Quest Admin",
+            "Concept Story Admin",
+            "실제 캡처",
+            "남은 한계",
+        ]
+
+        for text in required:
+            with self.subTest(text=text):
+                self.assertIn(text, html)
+
+    def test_public_deck_omits_user_instruction_copy_and_boxed_layout(self):
+        html = self.read_html()
+        css = self.read_css()
+
+        forbidden_copy = [
+            "단순 챗봇이 아니다",
+            "단순 챗봇이 아니라",
+            "외부 포트폴리오",
+            "내 지시사항",
+            "참고용으로",
+            "제발",
+            "정신차리고",
+            "목업 이미지나 생성 이미지는 사용하지 않는다",
+        ]
+        for text in forbidden_copy:
+            with self.subTest(forbidden_copy=text):
+                self.assertNotIn(text, html)
+
+        forbidden_css = [
+            "box-shadow",
+            "border-radius",
+            "clip-path",
+            "mask",
+            "background-image",
+            "writing-mode",
+        ]
+        for text in forbidden_css:
+            with self.subTest(forbidden_css=text):
+                self.assertNotIn(text, css)
+
+        h2_block_match = re.search(r"\.slide h2 \{(?P<body>.*?)\}", css, re.DOTALL)
+        if h2_block_match is None:
+            self.fail("missing slide title CSS block")
+        max_size_match = re.search(r"font-size:\s*clamp\([^,]+,[^,]+,\s*(\d+)px\)", h2_block_match.group("body"))
+        if max_size_match is None:
+            self.fail("slide title font-size must use clamp with px max")
+        self.assertLessEqual(int(max_size_match.group(1)), 31)
+        self.assertIn("word-break: keep-all", css)
+        self.assertIn("grid-template-columns", css)
+
+    def test_public_deck_hides_local_runtime_and_model_internals(self):
+        html = self.read_html()
+
+        for text in FORBIDDEN_PUBLIC_TERMS:
+            with self.subTest(text=text):
+                self.assertNotIn(text, html)
+
+    def test_every_slide_contains_explanation_copy(self):
         html = self.read_html()
         slides = cast(
             list[str],
@@ -48,166 +184,102 @@ class PresentationArtifactContract(unittest.TestCase):
         for index, slide in enumerate(slides, start=1):
             with self.subTest(slide=index):
                 self.assertIn('class="explain"', slide)
+                plain_text = re.sub(r"<[^>]+>", " ", slide)
+                compact = re.sub(r"\s+", " ", plain_text).strip()
+                self.assertGreaterEqual(len(compact), 180)
 
-    def test_visualization_first_project_structure_from_large_to_small(self):
+    def test_deck_documents_graph_loading_access_memory_and_admin_contracts(self):
         html = self.read_html()
         required = [
-            'data-slide-id="project-root-overview"',
-            'data-slide-id="handoff-map"',
-            'data-slide-id="architecture-overview"',
-            'data-slide-id="source-folder-visual"',
-            'data-slide-id="source-deep-map"',
-            "root-map",
-            "stack-diagram",
-            "lane-diagram",
-            "source-detail-map",
-            "rsc/data",
-            "scripts/story_pipeline",
-            "src/db_control/import_story_source_to_neo4j.py",
-            "src/streamlit/test_app.py",
-            "output/reports",
-            "output/integrated",
-            "output/neo4j_import",
-        ]
-
-        for text in required:
-            with self.subTest(text=text):
-                self.assertIn(text, html)
-
-    def test_data_augmentation_describes_added_content_with_actual_examples(self):
-        html = self.read_html()
-        required = [
-            'data-slide-id="augmentation-location"',
-            'data-slide-id="augmentation-added-items"',
-            'data-slide-id="quest-expansion-schema"',
-            'data-slide-id="quest-example-glowing"',
-            'data-slide-id="quest-example-main"',
-            "데이터 증강은 quest YAML의 story_expansion과 NPC Markdown의 story-chunk 두 곳에서 이루어졌다",
-            "증강으로 추가된 것은",
-            "퀘스트 목적",
-            "진행 단계",
-            "오답 가설",
-            "힌트 흐름",
-            "정답 공개 정책",
-            "NPC 지식 조각",
-            "story_expansion은 rsc/data/quests/*.yaml 안에 통합한다",
-            "story_purpose",
-            "quest_steps",
-            "wrong_hypotheses",
-            "hint_flow",
-            "answer_reveal_policy",
-            "completion",
-            "rsc/data/quests/q_glowing_mushroom.yaml",
-            "observe_light",
-            "달이 밝으면 더 보였단다",
-            "whm_bad_weather",
-            "날씨 때문에 버섯이 밝아졌다",
-            "rsc/data/quests/q_main_spore_night.yaml",
-            "align_direction",
-            "single_culprit_only",
-            "한 명의 장난이나 한 사건만으로 모든 일이 벌어졌다",
-            "can_reveal_truth_before_required_clues: false",
-        ]
-
-        for text in required:
-            with self.subTest(text=text):
-                self.assertIn(text, html)
-
-    def test_minmin_data_load_criteria_and_graph_structure_are_visualized(self):
-        html = self.read_html()
-        required = [
-            'data-slide-id="minmin-source-overview"',
-            'data-slide-id="minmin-frontmatter-visual"',
-            'data-slide-id="minmin-chunk-distribution"',
-            'data-slide-id="minmin-chunk-to-dict"',
-            'data-slide-id="minmin-load-criteria"',
-            'data-slide-id="minmin-graph-structure"',
-            'data-slide-id="minmin-runtime-trace"',
-            "minmin-map",
-            "profile-visual",
-            "chunk-distribution",
-            "transform-board",
-            "load-criteria",
-            "minmin-graph",
-            "runtime-trace",
-            "npc_id: minmin_lady",
-            "role: farmer",
-            "location_id: east_farm",
-            "main_quest: q_glowing_mushroom",
-            "minmin_chronicle_003",
-            "민민 부인이 본 몽실버섯의 변화",
-            "몽실버섯이 밤에 빛나고, 달이 밝은 날에는 더 눈에 띄며",
-            "고유 ID",
-            "출처 보존",
-            "관계 생성",
-            "공개 정책",
-            "NPC<br>minmin_lady",
-            "KnowledgeChunk<br>003 mushroom",
+            "chunk_id",
+            "phase",
+            "title",
+            "knowledge_type",
+            "quest_id",
+            "location_ids",
+            "event_ids",
+            "clue_ids",
+            "allowed_roles",
+            "answer_sensitive",
+            "hint_level",
+            "tags",
+            "answer_sensitive requires hint_level 3",
+            "NPC-[:KNOWS]->KnowledgeChunk",
             "RELATED_TO",
+            "MENTIONS",
+            "ABOUT",
             "POINTS_TO",
+            "player_role IN k.allowed_roles",
+            "k.hint_level &lt;= $allowed_hint_level",
+            "quest_state IN [ready_to_answer, solved]",
+            "LIMIT 8",
+            "chunk title/text only",
+            "내부 metadata를 직접 보여주지 않는다",
+            "이전 답변과 같은 표현을 반복하지 않도록",
+            "session-only memory",
+            "memory_by_npc",
+            "memory_summary_by_npc",
+            "summarize_memory_turns",
+            "summary compaction toward future long-term memory",
+            "ConceptStory is not the current retrieval source",
+            "자동 퀘스트 진행은 현재 구현 범위가 아니다",
         ]
 
         for text in required:
             with self.subTest(text=text):
                 self.assertIn(text, html)
 
-    def test_neo4j_runtime_and_streamlit_evidence_use_live_docker_assets(self):
+    def test_real_screenshots_are_existing_plain_rectangular_assets(self):
         html = self.read_html()
+        css = self.read_css()
+        image_sources = cast(list[str], re.findall(r'<img src="([^"]+)"', html))
+        image_block_match = re.search(r"\.evidence-card img \{(?P<body>.*?)\}", css, re.DOTALL)
+
+        if image_block_match is None:
+            self.fail("missing direct evidence image CSS block")
+
+        self.assertIn("실제 실행 캡처", html)
+        self.assertIn("검증 화면", html)
+        self.assertGreaterEqual(len(set(image_sources)), 14, "expected broad real screenshot evidence")
+
         required_assets = [
             "assets/neo4j-live-overview.png",
+            "assets/neo4j-live-quests.png",
             "assets/neo4j-live-minmin.png",
+            "assets/neo4j-live-rio.png",
+            "assets/neo4j-live-lumi.png",
+            "assets/neo4j-live-rowan.png",
+            "assets/streamlit-live-chat-e2b.png",
+            "assets/streamlit-debug-chunks.png",
+            "assets/streamlit-debug-prompt.png",
+            "assets/streamlit-admin-memory.png",
+            "assets/streamlit-admin-quest.png",
+            "assets/streamlit-admin-concept-story.png",
             "assets/streamlit-minmin-query.png",
             "assets/streamlit-rio-query.png",
             "assets/streamlit-lumi-query.png",
             "assets/streamlit-rowan-query.png",
         ]
-        required_text = [
-            'data-slide-id="neo4j-graph-evidence"',
-            'data-slide-id="neo4j-minmin-evidence"',
-            'data-slide-id="runtime-filter-query"',
-            'data-slide-id="runtime-gates-visual"',
-            'data-slide-id="prompt-build-process"',
-            'data-slide-id="streamlit-minmin-query"',
-            'data-slide-id="streamlit-rio-query"',
-            'data-slide-id="streamlit-lumi-query"',
-            'data-slide-id="streamlit-rowan-query"',
-            "NPC-[:KNOWS]->KnowledgeChunk",
-            "MATCH (:NPC {npc_id: $npc_id})-[:KNOWS]->(k:KnowledgeChunk)",
-            "$player_role IN k.allowed_roles",
-            "k.hint_level <= $allowed_hint_level",
-            "k.answer_sensitive = false OR $quest_state IN",
-            "get_allowed_chunks",
-            "build_prompt",
-            "stream_gemma_response",
-            "/v1/chat/completions",
-            "stream=true",
-            "실제 Docker Neo4j 캡처",
-            "실제 Docker Streamlit 캡처",
-            "캡처 메타데이터",
-            "http://127.0.0.1:17474",
-            "http://127.0.0.1:18501",
-        ]
 
         for asset in required_assets:
-            with self.subTest(asset=asset):
-                self.assertIn(asset, html)
-                self.assertTrue((PRESENTATION_DIR / asset).exists(), f"missing asset: {asset}")
+            with self.subTest(required_asset=asset):
+                self.assertIn(asset, image_sources)
 
-        for text in required_text:
-            with self.subTest(text=text):
-                self.assertIn(text, html)
+        for source in image_sources:
+            with self.subTest(source=source):
+                self.assertTrue(source.startswith("assets/"))
+                self.assertTrue(source.endswith(".png"))
+                self.assertTrue((PRESENTATION_DIR / source).exists(), f"missing asset: {source}")
 
-        stale_text = [
-            "Docker가 중지된 상태",
-            "기존 Streamlit 질의 캡처를 그대로 활용했다",
-            "신규 live capture는 만들지 않았다",
-            "KnowledgeChunk 22개",
-        ]
-        for text in stale_text:
-            with self.subTest(text=text):
-                self.assertNotIn(text, html)
+        image_css = image_block_match.group("body")
+        self.assertIn("object-fit: contain", image_css)
+        self.assertNotIn("border-radius", image_css)
+        self.assertNotIn("background-image", css)
+        self.assertNotIn("clip-path", css)
+        self.assertNotIn("mask", css)
+        self.assertNotIn("url(", css)
 
-    def test_image_pages_have_at_most_one_image(self):
+    def test_image_slides_use_at_most_one_image_unless_marked_comparison(self):
         html = self.read_html()
         slides = cast(
             list[str],
@@ -218,133 +290,104 @@ class PresentationArtifactContract(unittest.TestCase):
         for index, slide in enumerate(slides, start=1):
             image_count = slide.count("<img ")
             with self.subTest(slide=index):
-                self.assertLessEqual(image_count, 1)
+                if 'data-layout="comparison"' in slide:
+                    self.assertLessEqual(image_count, 2)
+                else:
+                    self.assertLessEqual(image_count, 1)
 
-    def test_all_npc_query_examples_are_documented(self):
+    def test_deck_stays_offline_double_clickable(self):
         html = self.read_html()
-        required = [
-            'data-slide-id="npc-query-matrix"',
-            'data-slide-id="npc-query-minmin"',
-            'data-slide-id="npc-query-rio"',
-            'data-slide-id="npc-query-lumi"',
-            'data-slide-id="npc-query-rowan"',
-            "민민 부인 질의 예시",
-            "순찰대장 리오 질의 예시",
-            "마도사 루미 질의 예시",
-            "헤이즐 촌장 로완 질의 예시",
-            "몽실버섯이 왜 빛나는지 정답만 알려줘",
-            "말랑돼지가 왜 같은 방향으로 움직였는지 순찰 기록으로 말해줘",
-            "방울젤리 색 변화와 버섯 빛이 같은 현상인지 설명해줘",
-            "필수 단서가 모였을 때 최종 대조 결과를 정리해줘",
-            "minmin_lady",
-            "patrol_leader_rio",
-            "mage_lumi",
-            "chief_rowan",
-        ]
-
-        for text in required:
-            with self.subTest(text=text):
-                self.assertIn(text, html)
-
-    def test_detailed_process_structure_is_not_a_simple_five_node_chain(self):
-        html = self.read_html()
-        required = [
-            'data-slide-id="full-process-blueprint"',
-            'data-slide-id="source-to-graph-detail"',
-            'data-slide-id="runtime-process-detail"',
-            'data-slide-id="operations-feedback-loop"',
-            "process-swimlane",
-            "process-step-grid",
-            "frontmatter parse",
-            "story-chunk fence scan",
-            "import plan validation",
-            "relationship upsert",
-            "sidebar state",
-            "Cypher gate",
-            "prompt assembly",
-            "streaming response",
-            "debug expander",
-        ]
-
-        for text in required:
-            with self.subTest(text=text):
-                self.assertIn(text, html)
-
-    def test_operations_server_apply_is_documented(self):
-        html = self.read_html()
-        required = [
-            'data-slide-id="production-apply-overview"',
-            'data-slide-id="production-commands"',
-            'data-slide-id="production-env"',
-            'data-slide-id="production-verify"',
-            "git pull --ff-only origin main",
-            "cp .env.example .env",
-            "docker compose --env-file .env build streamlit",
-            "docker compose --env-file .env up -d neo4j streamlit",
-            "--source-dir rsc/data",
-            "운영 DB에는 기본적으로 --reset을 붙이지 않는다",
-            "NEO4J_URI",
-            "NEO4J_PASSWORD",
-            "VLLM_URL",
-            "MODEL_NAME",
-            "google/gemma-4-E4B-it",
-        ]
-
-        for text in required:
-            with self.subTest(text=text):
-                self.assertIn(text, html)
-
-    def test_access_details_navigation_and_forbidden_phrasing(self):
-        html = self.read_html()
+        css = self.read_css()
         js = (PRESENTATION_DIR / "deck.js").read_text(encoding="utf-8")
-        required = [
-            "docker compose --env-file .env.design-test.example -f compose.design-test.yaml --profile gpu up -d",
-            "http://127.0.0.1:17474",
-            "bolt://127.0.0.1:17687",
-            "http://127.0.0.1:18501",
-            "http://127.0.0.1:18000/v1/models",
-            "neo4j / admin2026",
-            "prevSlide",
-            "nextSlide",
-            "slideCounter",
-        ]
+
         forbidden = [
-            "발표에서는",
-            "발표 중",
-            "발표 시",
-            "발표에서",
-            "qa-thumb",
-            "Streamlit 질문 테스트 결과 매트릭스",
-            "개발 프로젝트 handoff deck의 시각 기준",
+            "https://",
+            "http://",
+            "//cdn",
+            "fonts.googleapis",
+            "type=\"module\"",
         ]
-
-        for text in required:
-            with self.subTest(text=text):
-                self.assertIn(text, html)
-
         for text in forbidden:
             with self.subTest(text=text):
                 self.assertNotIn(text, html)
+                self.assertNotIn(text, css)
+                self.assertNotIn(text, js)
 
+        self.assertIn('href="styles.css"', html)
+        self.assertIn('src="deck.js"', html)
         self.assertIn("ArrowRight", js)
         self.assertIn("ArrowLeft", js)
-        self.assertIn("currentSlide", js)
+        self.assertIn("slides.length", js)
 
-    def test_deck_font_sizes_stay_within_requested_point_range(self):
+    def test_css_supports_detailed_portfolio_layouts_and_accessibility(self):
         css = self.read_css()
-        font_size_matches = cast(
-            list[tuple[str, str]],
-            re.findall(r"font-size:\s*(?:clamp\()?([0-9.]+)(px|pt)", css),
+        required = [
+            ":root",
+            ".topbar",
+            ".slide.is-active",
+            ".evidence-card img",
+            ".detail-list",
+            ".architecture-map",
+            ".code-panel",
+            ".section-divider",
+            ":focus-visible",
+            "@media (max-width: 820px)",
+            "@media (prefers-reduced-motion: reduce)",
+        ]
+
+        for text in required:
+            with self.subTest(text=text):
+                self.assertIn(text, css)
+
+    def test_image_alt_text_and_captions_are_public_facing(self):
+        html = self.read_html()
+        figures = cast(
+            list[tuple[str, str, str]],
+            re.findall(
+                r'<figure class="evidence-card[^">]*">\s*<img src="([^"]+)" alt="([^"]+)"[^>]*>\s*<figcaption>(.*?)</figcaption>',
+                html,
+                re.DOTALL,
+            ),
         )
-        sizes: list[float] = []
 
-        for value, unit in font_size_matches:
-            size = float(value)
-            sizes.append(size if unit == "pt" else size * 0.75)
+        self.assertTrue(figures, "expected screenshot figures with captions")
+        for source, alt, caption in figures:
+            with self.subTest(source=source):
+                self.assertIn("실제", alt)
+                self.assertGreaterEqual(len(alt), 12)
+                self.assertGreaterEqual(len(caption.strip()), 8)
+                for term in FORBIDDEN_PUBLIC_TERMS:
+                    self.assertNotIn(term, caption)
 
-        self.assertTrue(sizes, "expected explicit font-size declarations")
-        self.assertGreaterEqual(min(sizes), 9)
-        self.assertLessEqual(max(sizes), 21)
+    def test_docs_readme_keeps_affine_private_and_consolidates_duplicates(self):
+        docs_readme = (DOCS_DIR / "README.md").read_text(encoding="utf-8")
+
+        self.assertNotIn("affine/README.md", docs_readme)
+        self.assertNotIn("Affine 주간 포트폴리오", docs_readme)
+        self.assertIn("개인 작업 노트는 공개 문서 지도에서 제외", docs_readme)
+        self.assertNotIn("presentation_visualization.md", docs_readme)
+        self.assertFalse((DOCS_DIR / "presentation_visualization.md").exists())
+        self.assertFalse((DOCS_DIR / "architecture_usage_flows.md").exists())
+
+    def test_affine_notes_are_private_process_documents(self):
+        expected_files = [
+            AFFINE_DIR / "README.md",
+            AFFINE_DIR / "week-01-planning.md",
+            AFFINE_DIR / "week-02-design.md",
+            AFFINE_DIR / "week-03-development.md",
+            AFFINE_DIR / "week-04-fixes-runtime.md",
+            AFFINE_DIR / "week-05-completed-examples.md",
+        ]
+
+        for path in expected_files:
+            with self.subTest(path=path.relative_to(ROOT).as_posix()):
+                self.assertTrue(path.exists())
+                text = path.read_text(encoding="utf-8")
+                self.assertIn("고민과정과 해결과정", text)
+                self.assertIn("왜 이 선택을 했는가", text)
+                self.assertIn("어떻게 확인했는가", text)
+                for term in ["127.0.0.1", "google/gemma-4-E2B-it", "max_model_len", "VLLM_GPU_MEMORY_UTILIZATION"]:
+                    self.assertNotIn(term, text)
 
     def test_presentation_artifact_contains_no_huggingface_token(self):
         token_pattern = re.compile(r"hf_[A-Za-z0-9_=-]{10,}")

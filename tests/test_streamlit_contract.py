@@ -52,6 +52,7 @@ class StreamlitContractTest(unittest.TestCase):
     def test_quest_state_synchronizes_hint_level(self):
         source = APP_SOURCE.read_text(encoding="utf-8")
         admin_source = ADMIN_PAGE_SOURCE.read_text(encoding="utf-8")
+        quest_section = admin_source[admin_source.index('with quest_tab:'):admin_source.index('with concept_story_tab:')]
 
         self.assertIn("QUEST_STATE_HINT_LEVELS = {", source)
         self.assertIn('"not_started": 0', source)
@@ -62,14 +63,16 @@ class StreamlitContractTest(unittest.TestCase):
         self.assertIn('"solved": 3', source)
         self.assertIn("def sync_hint_level_from_quest_state()", source)
         self.assertNotIn("on_change=sync_hint_level_from_quest_state", source)
-        self.assertIn('with st.form("quest_state_admin_form")', admin_source)
-        self.assertIn('st.selectbox("Quest", QUEST_OPTIONS)', admin_source)
+        self.assertNotIn('with st.form("quest_state_admin_form")', quest_section)
+        self.assertIn('st.selectbox("Quest", QUEST_OPTIONS', quest_section)
         self.assertIn('"Quest State"', admin_source)
         self.assertIn('"Allowed Hint Level"', admin_source)
         self.assertIn("linked_hint_level = hint_level_for_quest_state(quest_state)", admin_source)
+        self.assertIn('st.metric("Allowed Hint Level", linked_hint_level)', quest_section)
+        self.assertIn("st.progress(linked_hint_level / 3", quest_section)
+        self.assertNotIn('st.slider(\n            "Allowed Hint Level"', quest_section)
+        self.assertNotIn("disabled=True", quest_section)
         self.assertIn("st.session_state.quest_state_by_quest[admin_quest_id] = quest_state", admin_source)
-        self.assertIn("value=linked_hint_level", admin_source)
-        self.assertIn("disabled=True", admin_source)
         self.assertIn("st.session_state.allowed_hint_level_by_quest[admin_quest_id] = linked_hint_level", admin_source)
         self.assertNotIn("st.session_state.allowed_hint_level_by_quest[admin_quest_id] = int(allowed_hint_level)", admin_source)
 
@@ -112,20 +115,78 @@ class StreamlitContractTest(unittest.TestCase):
         self.assertIn("CASE WHEN k.quest_id = $quest_id THEN 0 ELSE 1 END", app_source)
         self.assertIn("limit=8", app_source)
 
-    def test_interaction_logs_are_app_side_jsonl_with_debug_payload(self):
+    def test_interaction_logs_are_conversation_only_jsonl(self):
         source = APP_SOURCE.read_text(encoding="utf-8")
+        build_log_source = source[source.index("def build_interaction_log("):source.index("def append_interaction_log")]
 
         self.assertIn("CHAT_LOG_PATH = Path(os.getenv", source)
         self.assertIn("def build_interaction_log", source)
         self.assertIn("def append_interaction_log", source)
+        self.assertIn('"model": MODEL_NAME', build_log_source)
+        self.assertIn('"selection": {', build_log_source)
         self.assertIn('"input": user_message', source)
         self.assertIn('"output": response_text', source)
-        self.assertIn('"debug": {', source)
-        self.assertIn('"retrieved_chunks": chunks', source)
-        self.assertIn('"prompt": prompt', source)
+        self.assertNotIn('"debug": {', build_log_source)
+        self.assertNotIn('"retrieved_chunks": chunks', build_log_source)
+        self.assertNotIn('"prompt": prompt', build_log_source)
         self.assertIn("json.dumps(record_with_timestamp, ensure_ascii=False) +", source)
         self.assertIn("append_interaction_log(", source)
         self.assertIn("normalize_stream_response(response)", source)
+
+    def test_prompt_and_retrieval_debug_contexts_are_logged_once_outside_chat_log(self):
+        source = APP_SOURCE.read_text(encoding="utf-8")
+        retrieval_log_source = source[source.index('append_feature_log(\n            "retrieval"'):source.index("prompt = build_prompt(")]
+        prompt_log_start = source.index('append_feature_log(\n            "prompt"')
+        prompt_log_source = source[prompt_log_start:source.index("st.session_state.last_debug", prompt_log_start)]
+        build_log_source = source[source.index("def build_interaction_log("):source.index("def append_interaction_log")]
+
+        self.assertIn('"retrieved_chunks": chunks', retrieval_log_source)
+        self.assertIn('"prompt": prompt', prompt_log_source)
+        self.assertNotIn('"retrieved_chunks": chunks', build_log_source)
+        self.assertNotIn('"prompt": prompt', build_log_source)
+
+    def test_vllm_http_errors_are_logged_without_polluting_chat_memory(self):
+        source = APP_SOURCE.read_text(encoding="utf-8")
+
+        self.assertIn("class VllmRequestError(Exception):", source)
+        self.assertIn("raise VllmRequestError(", source)
+        self.assertIn("response_body", source)
+        self.assertIn("except VllmRequestError as e:", source)
+        self.assertIn('"event": "vllm_http_error"', source)
+
+        vllm_error_handler = source[source.index("except VllmRequestError as e:"):source.index("    except Exception as e:")]
+        self.assertNotIn("st.session_state.messages.append", vllm_error_handler)
+        self.assertNotIn("add_npc_memory_turn", vllm_error_handler)
+        self.assertNotIn("append_interaction_log", vllm_error_handler)
+
+    def test_all_vllm_request_failures_use_error_path_not_streamed_chat_text(self):
+        source = APP_SOURCE.read_text(encoding="utf-8")
+        stream_source = source[source.index("def stream_gemma_response(prompt: str):"):source.index("# -----------------------------\n# Sidebar")]
+
+        for exception_name in [
+            "requests.exceptions.ConnectionError",
+            "requests.exceptions.Timeout",
+            "requests.exceptions.HTTPError",
+            "requests.exceptions.RequestException",
+            "json.JSONDecodeError",
+        ]:
+            with self.subTest(exception=exception_name):
+                handler_start = stream_source.index(f"except {exception_name}")
+                next_handler = stream_source.find("\n    except ", handler_start + 1)
+                handler = stream_source[handler_start:] if next_handler == -1 else stream_source[handler_start:next_handler]
+                self.assertIn("raise VllmRequestError(", handler)
+                self.assertNotIn("yield", handler)
+
+        self.assertIn("display_message", source)
+        self.assertIn("st.error(e.display_message)", source)
+
+    def test_context_compaction_reserves_response_tokens_before_vllm_call(self):
+        source = APP_SOURCE.read_text(encoding="utf-8")
+
+        self.assertIn("VLLM_MAX_RESPONSE_TOKENS = 512", source)
+        self.assertIn("MAX_PROMPT_CONTEXT_UNITS = MAX_CONTEXT_TOKENS - VLLM_MAX_RESPONSE_TOKENS", source)
+        self.assertIn("threshold = int(MAX_PROMPT_CONTEXT_UNITS * MEMORY_COMPACTION_RATIO)", source)
+        self.assertIn('"max_tokens": VLLM_MAX_RESPONSE_TOKENS', source)
 
     def test_compose_persists_streamlit_jsonl_logs(self):
         for path in [COMPOSE_SOURCE, DESIGN_COMPOSE_SOURCE]:

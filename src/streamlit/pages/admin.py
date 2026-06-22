@@ -226,23 +226,18 @@ with memory_tab:
 
 with quest_tab:
     st.subheader("Quest Admin")
-    with st.form("quest_state_admin_form"):
-        admin_quest_id = st.selectbox("Quest", QUEST_OPTIONS)
-        current_state = st.session_state.quest_state_by_quest.get(admin_quest_id, DEFAULT_QUEST_STATE)
-        quest_state = st.selectbox(
-            "Quest State",
-            QUEST_STATE_OPTIONS,
-            index=QUEST_STATE_OPTIONS.index(current_state),
-        )
-        linked_hint_level = hint_level_for_quest_state(quest_state)
-        allowed_hint_level = st.slider(
-            "Allowed Hint Level",
-            min_value=0,
-            max_value=3,
-            value=linked_hint_level,
-            disabled=True,
-        )
-        save_quest = st.form_submit_button("Save Quest State")
+    admin_quest_id = st.selectbox("Quest", QUEST_OPTIONS, key="admin_quest_id")
+    current_state = st.session_state.quest_state_by_quest.get(admin_quest_id, DEFAULT_QUEST_STATE)
+    quest_state = st.selectbox(
+        "Quest State",
+        QUEST_STATE_OPTIONS,
+        index=QUEST_STATE_OPTIONS.index(current_state),
+        key=f"admin_quest_state_{admin_quest_id}",
+    )
+    linked_hint_level = hint_level_for_quest_state(quest_state)
+    st.metric("Allowed Hint Level", linked_hint_level)
+    st.progress(linked_hint_level / 3, text=f"Allowed Hint Level: {linked_hint_level}")
+    save_quest = st.button("Save Quest State")
 
     if save_quest:
         st.session_state.quest_state_by_quest[admin_quest_id] = quest_state
