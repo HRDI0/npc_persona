@@ -477,14 +477,14 @@ sequenceDiagram
     Neo4j-->>UI: 허용된 KnowledgeChunk 목록
     UI->>State: 선택 NPC의 대화 기억 조회
     UI->>Prompt: build_prompt(npc, chunks, user_message, state, memory)
-    alt prompt units >= 4096 * 0.9
+    alt prompt units >= MAX_PROMPT_CONTEXT_UNITS * MEMORY_COMPACTION_RATIO
         UI->>State: 선택 NPC 기억을 summary로 압축
         UI->>Prompt: 압축된 memory context로 prompt 재생성
     end
     Prompt-->>UI: 최종 프롬프트 문자열
     UI->>Infer: 응답 스트리밍 함수(prompt)
     Infer-->>UI: token/text stream
-    UI->>State: assistant response append + 선택 NPC memory append
+    UI->>State: 성공한 assistant response append + 선택 NPC memory append
     UI-->>User: NPC 답변 표시
 ```
 
@@ -504,13 +504,13 @@ flowchart TD
     Chunks[get_allowed_chunks]
     Memory[선택 NPC conversation context 조회]
     Prompt[build_prompt]
-    Compact[4096 * 0.9 이상이면\n선택 NPC memory summary 압축 후 prompt 재생성]
+    Compact[MAX_PROMPT_CONTEXT_UNITS * MEMORY_COMPACTION_RATIO 이상이면\n선택 NPC memory summary 압축 후 prompt 재생성]
     SaveDebug[st.session_state.last_debug 저장]
     Stream[응답 스트리밍 함수]
-    AppendAssistant[응답 저장 + 선택 NPC memory append]
+    AppendAssistant[성공 응답 저장 + 선택 NPC memory append]
     Log[feature-split JSONL logs append]
     DebugRender[sidebar container에 debug popovers 렌더]
-    Error[예외 발생 시 오류 메시지 저장/표시]
+    Error[예외 발생 시 오류 표시/로그]
 
     Start --> Config --> Page --> InitState --> Sidebar --> History --> Input
     Input --> AppendUser --> Profile --> Chunks --> Memory --> Prompt --> Compact --> SaveDebug --> Stream --> AppendAssistant --> Log
@@ -518,7 +518,7 @@ flowchart TD
     History --> DebugRender
     Profile -.예외.-> Error
     Chunks -.예외.-> Error
-    Stream -.예외 문자열 yield.-> AppendAssistant
+    Stream -.vLLM 요청 실패.-> Error
 ```
 
 Streamlit은 스크립트 재실행 방식으로 동작한다. 사용자가 NPC 또는 Player Role을 바꾸거나 채팅을 입력하면 파일이 다시 실행되고, `st.session_state`에 저장된 값으로 이전 대화와 현재 선택 상태를 복원한다. 메인 사이드바에는 Quest 상태나 hint level을 직접 조작하는 UI가 없다. Quest 상태와 그에 연결된 hint level은 admin page의 Quest Admin 탭에서 저장하거나, 현재 `quest_id`에 저장된 세션 상태에서 복원된다.
@@ -653,7 +653,7 @@ flowchart TB
 
 NPC-facing context에는 chunk의 `title`과 `text`, NPC의 기본 이름과 역할, 성격, 말투, 대화 규칙, 현재 대화 조건, 선택 NPC의 세션 대화 기억만 들어간다. `chunk_id`, `knowledge_type`, `hint_level`, `answer_sensitive` 같은 내부 chunk metadata는 모델에게 직접 보이지 않는다. NPC frontmatter의 `knowledge_scope`와 `restricted_knowledge`도 raw 값 그대로 넣지 않고, 실제 대사 제어는 `dialogue_must`, `dialogue_must_not`, 조회된 chunk 본문, 응답 정책으로 수행한다.
 
-프롬프트 길이 관리는 세션 메모리에서 처리한다. 앱은 먼저 현재 `memory_summary_by_npc[npc_id]`와 `memory_by_npc[npc_id]`로 conversation context를 만든 뒤 prompt를 조립한다. `estimate_prompt_units(prompt)`가 `4096 * 0.9` 이상이면 해당 NPC의 최근 turn 전체를 summary에 병합하고 `memory_by_npc[npc_id]`를 비운 다음, 같은 NPC, chunk, 사용자 질문으로 prompt를 다시 만든다. 이 압축은 세션 상태에만 영향을 주며 Neo4j `KnowledgeChunk` 조회 결과를 바꾸지 않는다.
+프롬프트 길이 관리는 세션 메모리에서 처리한다. 앱은 먼저 현재 `memory_summary_by_npc[npc_id]`와 `memory_by_npc[npc_id]`로 conversation context를 만든 뒤 prompt를 조립한다. 전체 컨텍스트에서 응답 예산 `VLLM_MAX_RESPONSE_TOKENS = 512`를 먼저 뺀 `MAX_PROMPT_CONTEXT_UNITS = MAX_CONTEXT_TOKENS - VLLM_MAX_RESPONSE_TOKENS`를 prompt context 예산으로 잡고, `estimate_prompt_units(prompt)`가 `int(MAX_PROMPT_CONTEXT_UNITS * MEMORY_COMPACTION_RATIO)` 이상이면 해당 NPC의 최근 turn 전체를 summary에 병합하고 `memory_by_npc[npc_id]`를 비운 다음, 같은 NPC, chunk, 사용자 질문으로 prompt를 다시 만든다. 현재 `MEMORY_COMPACTION_RATIO`는 `0.9`다. 이 압축은 세션 상태에만 영향을 주며 Neo4j `KnowledgeChunk` 조회 결과를 바꾸지 않는다.
 
 ### 8.2 응답 스트리밍 처리
 
@@ -678,9 +678,9 @@ sequenceDiagram
     UI->>UI: st.write_stream으로 화면에 누적 표시
 ```
 
-응답 처리의 핵심은 `stream=True`다. 전체 응답이 끝날 때까지 기다린 뒤 한 번에 보여주는 방식이 아니라, 들어오는 조각을 `yield`하고 `st.write_stream()`이 이를 화면에 누적한다.
+응답 처리의 핵심은 `stream=True`다. 전체 응답이 끝날 때까지 기다린 뒤 한 번에 보여주는 방식이 아니라, 성공 응답에서는 들어오는 조각을 `yield`하고 `st.write_stream()`이 이를 화면에 누적한다.
 
-예외가 발생하면 응답 스트리밍 함수는 예외를 다시 던지지 않고 오류 문자열을 yield한다. 반면 Neo4j 조회나 prompt 생성 단계에서 발생한 예외는 chat handler의 `try/except`가 잡아서 `오류 발생: ...` 형태로 화면에 표시한다.
+vLLM 요청 실패는 `VllmRequestError`로 올라오고, chat handler가 `st.error(e.display_message)`로 화면에 표시한 뒤 오류 context를 별도 로그로 남긴다. 이 실패는 assistant chat, 선택 NPC memory, 정상 대화 로그로 저장하지 않는다. Neo4j 조회나 prompt 생성 단계에서 발생한 예외도 chat handler의 `try/except`가 잡아서 화면에 표시한다.
 
 ## 9. 런타임 데이터 이동 상세
 
@@ -694,7 +694,7 @@ flowchart LR
     F[KnowledgeChunk dict list]
     M[선택 NPC memory context]
     G[build_prompt]
-    N[4096 * 0.9 기준 초과 시\nmemory summary 압축 + prompt 재생성]
+    N[MAX_PROMPT_CONTEXT_UNITS * MEMORY_COMPACTION_RATIO 기준 초과 시\nmemory summary 압축 + prompt 재생성]
     H[프롬프트 문자열]
     I[HTTP streaming request]
     J[응답 조각 stream]
@@ -715,7 +715,7 @@ flowchart LR
 | chunk 조회 | `npc_id`, `role`, `quest`, `state`, `hint` | `list[dict[str, object]]` |
 | memory context | 선택 NPC의 summary와 최근 turn | 프롬프트용 이전 대화 기억 문자열 |
 | 프롬프트 생성 | NPC dict, chunk list, 사용자 질문, 상태값, memory context | `str` |
-| prompt compaction | prompt units가 `4096 * 0.9` 이상인 경우 | 선택 NPC memory summary 갱신 후 재생성한 prompt |
+| prompt compaction | prompt units가 `int(MAX_PROMPT_CONTEXT_UNITS * MEMORY_COMPACTION_RATIO)` 이상인 경우 | 선택 NPC memory summary 갱신 후 재생성한 prompt |
 | 추론 요청 | prompt 문자열 | 스트리밍 text 조각 |
 | 화면 출력 | text 조각 | 누적된 assistant response |
 | 히스토리 저장 | user와 assistant response | `messages`와 선택 NPC memory에 append |
@@ -741,7 +741,7 @@ flowchart LR
 | 실행 주체 | 운영자/배포 스크립트 | 사용자 브라우저 요청에 따른 앱 실행 | 운영자 브라우저 요청에 따른 admin page 실행 |
 | DB 작업 | `MERGE`, `SET`, 관계 생성, constraint 생성 | `MATCH`, `RETURN` 조회 | `ConceptStory` `MATCH`, `MERGE`, `SET` |
 | 주요 함수 | `import_story_source()`, `upsert_*()` | `get_npc_profile()`, `get_allowed_chunks()` | `fetch_concept_story()`, `upsert_concept_story()` |
-| 실패 방식 | 예외 발생 시 import 중단 | 화면에 오류 메시지 표시 또는 오류 문자열 출력 | admin 화면에 validation/error/success 표시 |
+| 실패 방식 | 예외 발생 시 import 중단 | 화면에 오류 메시지 표시, vLLM 요청 실패는 오류 로그만 남기고 assistant chat/memory에는 저장하지 않음 | admin 화면에 validation/error/success 표시 |
 | 데이터 방향 | 파일 -> Neo4j | Neo4j -> 프롬프트 -> 사용자 화면 | admin 입력 -> session state 또는 ConceptStory node |
 
 ## 11. 운영 시나리오별 흐름
@@ -773,7 +773,7 @@ flowchart TD
     Ask[질문 입력]
     Retrieve[Neo4j에서 NPC + chunk 조회]
     Compose[per-NPC memory와 chunk로 프롬프트 생성]
-    Compact[4096 * 0.9 초과 시 memory 압축 후 prompt 재생성]
+    Compact[MAX_PROMPT_CONTEXT_UNITS * MEMORY_COMPACTION_RATIO 초과 시 memory 압축 후 prompt 재생성]
     Stream[외부 추론 응답 스트리밍]
     Save[대화 히스토리와 선택 NPC memory 저장]
 
@@ -831,7 +831,7 @@ flowchart TD
     QueryError[Neo4j 조회 실패]
     InferError[추론 HTTP/stream 오류]
     UIError[채팅창 오류 표시]
-    UIYield[오류 문자열 스트리밍]
+    UILog[오류 context 로그]
 
     ImportStart --> FMError --> ImportStop
     ImportStart --> ChunkError --> ImportStop
@@ -839,10 +839,11 @@ flowchart TD
 
     AppStart --> NPCMissing --> UIError
     AppStart --> QueryError --> UIError
-    AppStart --> InferError --> UIYield
+    AppStart --> InferError --> UIError
+    InferError --> UILog
 ```
 
-Importer는 데이터 품질 문제가 있으면 즉시 예외를 발생시켜 중단한다. 반면 Streamlit 앱은 사용자 화면을 유지해야 하므로 오류를 채팅 메시지나 스트리밍 문자열로 표시한다.
+Importer는 데이터 품질 문제가 있으면 즉시 예외를 발생시켜 중단한다. 반면 Streamlit 앱은 사용자 화면을 유지해야 하므로 오류를 화면에 표시한다. vLLM 요청 실패는 오류 context만 로그로 남기고 assistant chat, 선택 NPC memory, 정상 interaction log에는 저장하지 않는다.
 
 ## 13. 검증 지점
 

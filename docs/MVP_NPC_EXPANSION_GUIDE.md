@@ -121,7 +121,7 @@ max_model_len: 4096
 gpu_memory_utilization: 0.9
 ```
 
-`src/streamlit/test_app.py`의 기본 모델명은 설계 검증용 served model인 `google/gemma-4-E4B-it`로 맞춘 상태다. 다른 모델명으로 호출하면 404가 날 수 있다.
+`src/streamlit/test_app.py`의 기본 모델명은 production/server 기본 served model인 `google/gemma-4-E4B-it`로 맞춘 상태다. 다른 모델로 실행할 때는 `MODEL_NAME`이 실제 served model과 같아야 하며, 다르면 404가 날 수 있다.
 
 ---
 
@@ -563,7 +563,7 @@ WHERE
 
 ## 9. Streamlit 앱을 실행한다
 
-항상 환경변수를 명시한다. 특히 `MODEL_NAME`은 `google/gemma-4-E4B-it`로 맞춘다.
+항상 환경변수를 명시한다. production/server 기본 예시는 `MODEL_NAME=google/gemma-4-E4B-it`지만, 실제 vLLM이 다른 served model을 반환하면 그 값에 맞춘다.
 
 ```powershell
 $env:NEO4J_URI="bolt://localhost:7687"
@@ -995,11 +995,13 @@ ORDER BY k.chunk_id;
 
 ### 14.3 vLLM 404 model not found가 나온다
 
-`MODEL_NAME`이 served model과 다르다는 뜻이다.
+`MODEL_NAME`이 served model과 다르다는 뜻이다. `/v1/models`에서 반환된 id와 같은 값으로 맞춘다.
 
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8000/v1/models"
 $env:MODEL_NAME="google/gemma-4-E4B-it"
+# 또는 최근 E2B 검증 런타임처럼 서빙 중인 모델에 맞춘다.
+$env:MODEL_NAME="google/gemma-4-E2B-it"
 ```
 
 ### 14.4 민감 정보가 너무 빨리 나온다
@@ -1019,7 +1021,7 @@ hint_2에서 말할 수 있는 내용은 answer_sensitive=false로 두고 표현
 
 ```text
 1. Neo4j dump를 복원하거나, rsc/data importer 경로를 선택한다.
-2. vLLM을 google/gemma-4-E4B-it로 실행하고 /v1/models를 확인한다.
+2. vLLM을 production/server 기본 예시인 google/gemma-4-E4B-it 또는 현재 검증하려는 모델로 실행하고 /v1/models를 확인한다.
 3. 환경변수 NEO4J_PASSWORD, MODEL_NAME을 명시한다.
 4. importer 파싱 수를 확인한다.
 5. chunk fence를 story-chunk로 통일하거나 importer regex를 확장한다.

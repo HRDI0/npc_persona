@@ -57,7 +57,7 @@ def estimate_context_units(turns: Sequence[Mapping[str, object]]) -> int:
 
 
 def estimate_prompt_units(prompt: str) -> int:
-    return len(prompt)
+    return len(prompt.encode("utf-8"))
 
 
 def summarize_memory_turns(turns: Sequence[Mapping[str, object]]) -> str:

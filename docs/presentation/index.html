@@ -3,538 +3,623 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hazel GraphRAG Visual Documentation</title>
+  <title>Hazel GraphRAG Technical Portfolio</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="topbar" aria-label="문서 탐색">
-    <div>
-      <p class="eyebrow">Hazel GraphRAG MVP</p>
-      <h1>NPC 지식 그래프 시각 문서</h1>
+  <header class="topbar" aria-label="슬라이드 탐색">
+    <div class="topbar-title">
+      <p class="eyebrow">Hazel GraphRAG</p>
+      <h1>기술 포트폴리오</h1>
     </div>
     <nav class="deck-controls" aria-label="슬라이드 이동">
-      <button id="prevSlide" type="button" aria-label="이전 섹션">Prev</button>
-      <span id="slideCounter">1 / 39</span>
-      <button id="nextSlide" type="button" aria-label="다음 섹션">Next</button>
+      <button id="prevSlide" type="button" aria-label="이전 슬라이드">Prev</button>
+      <span id="slideCounter">1 / 41</span>
+      <button id="nextSlide" type="button" aria-label="다음 슬라이드">Next</button>
     </nav>
   </header>
 
   <main id="deck" class="deck">
-    <section class="slide is-active" data-slide-id="project-root-overview">
-      <div class="slide-kicker">01 / Repository Map</div>
-      <h2>루트 구조는 원천, 실행, 산출, 문서로 분리된다</h2>
-      <div class="visual root-map" aria-label="프로젝트 루트 구조도">
-        <div class="node root">npc_persona</div>
-        <div class="branch"><strong>rsc/data</strong><span>NPC Markdown, quest YAML, world YAML</span></div>
-        <div class="branch"><strong>scripts/story_pipeline</strong><span>검증 리포트와 Neo4j CSV 재생성</span></div>
-        <div class="branch"><strong>src/db_control/import_story_source_to_neo4j.py</strong><span>원천 파일을 그래프 노드와 관계로 적재</span></div>
-        <div class="branch"><strong>src/streamlit/test_app.py</strong><span>대화 상태, Cypher gate, prompt stream</span></div>
-        <div class="branch"><strong>output/reports</strong><span>검증 결과와 import report</span></div>
-        <div class="branch"><strong>output/integrated</strong><span>통합 YAML/JSON 산출물</span></div>
-        <div class="branch"><strong>output/neo4j_import</strong><span>재생성 가능한 Neo4j import 파일</span></div>
+    <section class="slide is-active" data-slide-id="portfolio-cover">
+      <p class="slide-kicker">01 / Case Study</p>
+      <h2>Hazel GraphRAG 포트폴리오는 story data를 검색 구조로 증명.</h2>
+      <div class="slide-body two-column">
+        <div class="lead-copy">
+          <p><strong>Hazel GraphRAG</strong>는 NPC 대화가 참조할 이야기 정보를 Neo4j 그래프와 Streamlit 운영 화면으로 연결한 Story Data Architecture 기술 사례다.</p>
+          <p>인물별, 퀘스트별 데이터 모델과 적재 기준, 접근 제어, prompt 조립, 세션 메모리, Admin 분리, 실제 캡처와 실제 실행 캡처를 하나의 흐름으로 연결한다.</p>
+        </div>
+        <ul class="detail-list">
+          <li><b>범위</b><span>NPC 4명, 퀘스트 5개, KnowledgeChunk 26개, 실제 검증 화면.</span></li>
+          <li><b>핵심</b><span>인물별 지식과 퀘스트 상태를 graph relationship과 속성 gate로 제한.</span></li>
+          <li><b>목표</b><span>스토리 구조, 런타임 검색, 운영 표면을 포트폴리오 형식으로 증명.</span></li>
+        </ul>
       </div>
-      <div class="explain">
-        <p>이 문서는 저장소를 큰 영역에서 작은 파일까지 따라 내려가는 방식으로 읽는다. `rsc/data`가 사람이 관리하는 원천이고, `output/`은 다시 만들 수 있는 결과다. 실행 코드는 원천을 그래프로 바꾸고, Streamlit은 현재 대화 상태에서 허용된 지식만 꺼낸다.</p>
-      </div>
+      <div class="explain"><p>Hazel GraphRAG의 중심은 모델 이름보다 데이터가 실행 조건으로 바뀌는 구조다. 원천 데이터는 공개 조건 단위로 나뉘고, 각 조각은 Neo4j 관계와 runtime gate를 거쳐 Streamlit 대화와 Admin 화면에서 검증된다. 첫 장은 기술 스택보다 문제, 구조, 검증 표면을 먼저 연결한다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="handoff-map">
-      <div class="slide-kicker">02 / Handoff Map</div>
-      <h2>인수인계 관점의 읽기 순서</h2>
-      <div class="visual lane-diagram" aria-label="문서 읽기 레인">
-        <div class="lane"><b>1. 목적</b><span>GraphRAG MVP는 NPC가 아무 사실이나 말하지 않게 만든다.</span></div>
-        <div class="lane"><b>2. 원천</b><span>NPC frontmatter와 story-chunk가 지식 단위가 된다.</span></div>
-        <div class="lane"><b>3. 그래프</b><span>NPC, Quest, Clue, Truth, KnowledgeChunk가 관계로 묶인다.</span></div>
-        <div class="lane"><b>4. 런타임</b><span>역할, 상태, 힌트 레벨이 조회 범위를 제한한다.</span></div>
-        <div class="lane"><b>5. 운영</b><span>Docker Compose와 환경변수로 서버 반영 절차를 고정한다.</span></div>
+    <section class="slide" data-slide-id="portfolio-thesis">
+      <p class="slide-kicker">02 / Thesis</p>
+      <h2>핵심 논지는 제어 가능한 NPC 지식 검색.</h2>
+      <div class="slide-body two-column">
+        <ul class="detail-list">
+          <li><b>저장 전제</b><span>이야기 원천은 NPC, 퀘스트, 장소, 사건, 단서, 진실로 분리된다.</span></li>
+          <li><b>검색 전제</b><span>NPC가 아는 KnowledgeChunk만 후보가 되며 역할과 진행 상태가 추가 필터다.</span></li>
+          <li><b>운영 전제</b><span>답변 이상 여부는 debug chunk, prompt, Admin 상태로 추적 가능해야 한다.</span></li>
+        </ul>
+        <div class="architecture-map">
+          <article><span>Source</span><b>작성 단위</b><p>Markdown과 YAML에서 이야기 사실을 나눈다.</p></article>
+          <article><span>Graph</span><b>권한 단위</b><p>관계와 속성으로 발화 가능 범위를 만든다.</p></article>
+          <article><span>Runtime</span><b>검색 단위</b><p>현재 조건에 맞는 chunk만 prompt에 전달한다.</p></article>
+          <article><span>Admin</span><b>운영 단위</b><p>메모리, 퀘스트, ConceptStory를 분리 관리한다.</p></article>
+        </div>
       </div>
-      <div class="explain">
-        <p>처음 보는 사람은 기능 이름보다 데이터 흐름을 먼저 보아야 한다. 이 지도는 `PROJECT_HANDOFF_REPORT.md`의 순서를 시각화한 것이다. 원천 데이터 원칙을 먼저 이해하면, import 경로와 Streamlit 조회 조건이 자연스럽게 연결된다.</p>
-      </div>
+      <div class="explain"><p>핵심은 생성 결과보다 검색 조건과 운영 구조다. 같은 질문이라도 NPC, 플레이어 역할, quest_state, hint_level이 달라지면 prompt에 들어가는 근거가 달라진다. 전체 흐름은 데이터 분할, 관계 설계, 검색 gate, 운영 검증 순서로 이어진다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="architecture-overview">
-      <div class="slide-kicker">03 / Architecture</div>
-      <h2>Streamlit, Neo4j, vLLM은 서로 다른 책임을 가진다</h2>
-      <div class="visual stack-diagram" aria-label="아키텍처 스택">
-        <div class="stack-layer source">Source: Markdown + YAML</div>
-        <div class="stack-arrow">frontmatter parse / story-chunk fence scan</div>
-        <div class="stack-layer importer">Importer: validation + relationship upsert</div>
-        <div class="stack-arrow">MERGE nodes, rebuild owned outgoing edges</div>
-        <div class="stack-layer graph">Neo4j: NPC-[:KNOWS]->KnowledgeChunk</div>
-        <div class="stack-arrow">Cypher gate by role, hint, quest state</div>
-        <div class="stack-layer ui">Streamlit: prompt assembly + streaming response</div>
-        <div class="stack-layer model">vLLM: /v1/chat/completions, stream=true</div>
+    <section class="slide" data-slide-id="problem-boundary">
+      <p class="slide-kicker">03 / Boundary</p>
+      <h2>문제는 정답 누출과 인물 지식의 혼선.</h2>
+      <div class="slide-body two-column">
+        <div class="lead-copy">
+          <p>NPC 대화의 실패는 답변 품질만의 문제가 아니다. 한 인물이 알 수 없는 사실을 말하거나, 퀘스트가 열리기 전에 최종 원인을 공개하면 스토리 진행이 무너진다.</p>
+          <p>Hazel 구조는 이를 데이터 단계에서 제한한다. 발화 가능성은 prompt 문장 하나가 아니라 원천 metadata, graph relation, runtime filter가 함께 결정한다.</p>
+        </div>
+        <ul class="detail-list compact">
+          <li><b>인물 경계</b><span>민민, 리오, 루미, 로완은 다른 관찰 위치와 역할을 가진다.</span></li>
+          <li><b>퀘스트 경계</b><span>초기 힌트, 중간 가설, 최종 대조는 같은 사건 안에서도 단계가 다르다.</span></li>
+          <li><b>운영 경계</b><span>Admin은 세션 메모리와 퀘스트 상태를 화면에서 분리한다.</span></li>
+        </ul>
       </div>
-      <div class="explain">
-        <p>아키텍처의 핵심은 모델 앞에 지식 선택 단계를 둔 점이다. 전체 DB를 모델에 넣지 않고, `get_allowed_chunks`가 고른 근거만 `build_prompt`에 들어간다. 그래서 NPC 성격보다 먼저 데이터 권한이 답변 범위를 결정한다.</p>
-      </div>
+      <div class="explain"><p>문제 경계는 “더 많이 말하기”가 아니라 “지금 말해도 되는 것만 말하기”다. 이 기준 때문에 KnowledgeChunk는 내용 길이보다 공개 조건을 기준으로 나뉜다. 그래프는 단순 저장소가 아니라 누가 무엇을 아는지, 어떤 단서와 연결되는지, 어떤 상태에서 공개되는지 표현하는 제어 표면이 된다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="source-folder-visual">
-      <div class="slide-kicker">04 / Source Folder</div>
-      <h2>원천 폴더는 사람이 편집하기 쉬운 단위로 나뉜다</h2>
-      <div class="visual source-detail-map" aria-label="원천 폴더 상세 맵">
-        <div class="file-card"><b>rsc/data/npcs/*.md</b><span>프로필, 말투, 제한 지식, story-chunk</span></div>
-        <div class="file-card"><b>rsc/data/quests/*.yaml</b><span>퀘스트 상태, required clue, story_expansion</span></div>
-        <div class="file-card"><b>rsc/data/world/*.yaml</b><span>Role, Event, Clue, Truth 기준 ID</span></div>
-        <div class="file-card"><b>rsc/data/locations/*.md</b><span>Location 노드의 설명과 분위기</span></div>
+    <section class="slide" data-slide-id="portfolio-scope">
+      <p class="slide-kicker">04 / Scope</p>
+      <h2>범위는 데이터 모델부터 운영 화면까지.</h2>
+      <div class="slide-body two-column">
+        <div class="metrics-row">
+          <div><strong>4</strong><span>NPC</span></div><div><strong>5</strong><span>Quests</span></div><div><strong>26</strong><span>KnowledgeChunks</span></div><div><strong>16+</strong><span>검증 화면</span></div>
+        </div>
+        <ul class="detail-list">
+          <li><b>포함</b><span>스토리 원천 분리, Neo4j 적재, 검색 gate, prompt 조립, 세션 메모리, Admin 분리.</span></li>
+          <li><b>구분</b><span>자동 퀘스트 진행은 현재 구현 범위가 아니다. ConceptStory는 현재 retrieval source가 아니다.</span></li>
+          <li><b>근거</b><span>실제 실행 캡처와 테스트 계약으로 구현 범위를 확인한다.</span></li>
+        </ul>
       </div>
-      <div class="explain">
-        <p>스토리 변경은 생성 산출물이 아니라 `rsc/data`에서 시작한다. NPC 파일은 개인 지식의 범위를 담고, quest YAML은 진행 단계와 공개 정책을 담는다. 이 분리는 운영자가 어떤 정보를 어디에 추가해야 하는지 빠르게 판단하게 한다.</p>
-      </div>
+      <div class="explain"><p>현재 구현 범위는 graph 기반 retrieval, 세션 memory, 운영 Admin이다. 장기 기억의 영속 저장이나 자동 퀘스트 전환은 같은 구조 위에 붙일 수 있지만, 별도 검증이 필요한 확장 영역으로 분리한다. 이 장은 구현된 표면과 남은 한계를 먼저 구분한다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="source-deep-map">
-      <div class="slide-kicker">05 / Source Deep Map</div>
-      <h2>깊은 원천 구조는 노드 속성과 관계 후보를 함께 만든다</h2>
-      <div class="visual matrix dense" aria-label="원천에서 그래프까지 상세 표">
-        <div><b>YAML frontmatter</b><span>npc_id, role, location_id, main_quest</span><em>NPC 노드 속성</em></div>
-        <div><b>story-chunk fence</b><span>chunk_id, quest_id, clue_ids</span><em>KnowledgeChunk 후보</em></div>
-        <div><b>quest story_expansion</b><span>quest_steps, wrong_hypotheses</span><em>진행과 오답 정책</em></div>
-        <div><b>world IDs</b><span>Clue 8, Event 5, Truth 3</span><em>관계 검증 기준</em></div>
+    <section class="slide" data-slide-id="system-map">
+      <p class="slide-kicker">05 / System Map</p>
+      <h2>시스템 흐름은 원천 파일에서 Admin 검증까지.</h2>
+      <div class="slide-body diagram-first">
+        <div class="code-panel"><pre><code>rsc/data
+  npcs/*.md          -> NPC, KnowledgeChunk
+  quests/*.yaml      -> Quest, story_expansion
+  world/*.yaml       -> Role, Event, Clue, Truth
+
+import_story_source_to_neo4j.py
+  -> validate metadata
+  -> MERGE nodes
+  -> create relationships
+
+Streamlit main app
+  -> get_npc_profile
+  -> get_allowed_chunks
+  -> build_prompt
+
+Streamlit admin page
+  -> Memory Admin
+  -> Quest Admin
+  -> Concept Story Admin</code></pre></div>
+        <ul class="detail-list compact">
+          <li><b>작성</b><span>원천 데이터는 사람이 검토할 수 있는 파일 단위다.</span></li>
+          <li><b>적재</b><span>importer는 metadata 검증 후 그래프 관계를 만든다.</span></li>
+          <li><b>사용</b><span>runtime은 현재 대화 조건으로 chunk를 좁힌다.</span></li>
+          <li><b>운영</b><span>Admin은 메모리와 퀘스트 상태를 분리해 다룬다.</span></li>
+        </ul>
       </div>
-      <div class="explain">
-        <p>원천 파서는 텍스트를 단순 복사하지 않는다. frontmatter는 NPC의 정체성을 만들고, story-chunk metadata는 그래프 연결의 좌표가 된다. 따라서 chunk 본문과 metadata가 함께 있어야 런타임에서 출처, 권한, 관계를 모두 추적할 수 있다.</p>
-      </div>
+      <div class="explain"><p>시스템은 하나의 대화 앱처럼 보이지만 실제 책임은 네 단계로 나뉜다. Source는 이야기 사실을 보관하고, importer는 이를 Neo4j graph로 변환한다. Streamlit main app은 graph에서 현재 조건에 맞는 지식만 가져와 prompt를 만들고, admin page는 운영자가 상태와 보조 데이터를 조정하는 별도 표면이다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="augmentation-location">
-      <div class="slide-kicker">06 / Augmentation Location</div>
-      <h2>증강 위치는 quest YAML과 NPC Markdown 두 곳이다</h2>
-      <div class="visual split-board" aria-label="데이터 증강 위치">
-        <div class="panel"><b>Quest YAML</b><span>story_expansion</span><p>진행 단계, 힌트 흐름, 공개 조건을 퀘스트 안에 보존한다.</p></div>
-        <div class="panel"><b>NPC Markdown</b><span>story-chunk</span><p>NPC가 실제로 말할 수 있는 관찰과 지식 조각을 추가한다.</p></div>
+    <section class="slide" data-slide-id="story-data-sources">
+      <p class="slide-kicker">06 / Sources</p>
+      <h2>원천 파일은 역할별 책임으로 분리.</h2>
+      <div class="slide-body two-column">
+        <ul class="detail-list">
+          <li><b>NPC Markdown</b><span>NPC 프로필, 대화 규칙, story chunk 본문, 말하면 안 되는 지식을 함께 보관한다.</span></li>
+          <li><b>Quest YAML</b><span>퀘스트 진행, 관련 NPC, 단서, 정답 공개 조건, story_expansion을 관리한다.</span></li>
+          <li><b>World YAML</b><span>역할, 장소, 사건, 단서, 진실을 공통 vocabulary로 유지한다.</span></li>
+        </ul>
+        <div class="code-panel"><pre><code>npcs/minmin_lady.md
+
+quests/q_glowing_mushroom.yaml
+quests/q_pig_escape.yaml
+quests/q_jelly_color.yaml
+quests/q_changed_signpost.yaml
+quests/q_main_spore_night.yaml
+
+world/roles.yaml
+world/events.yaml
+world/clues.yaml
+world/truths.yaml</code></pre></div>
       </div>
-      <div class="explain">
-        <p>데이터 증강은 quest YAML의 story_expansion과 NPC Markdown의 story-chunk 두 곳에서 이루어졌다. 새 대형 구조를 만들기보다 기존 네 NPC와 다섯 퀘스트의 말할 수 있는 범위를 조밀하게 만든 작업이다.</p>
-      </div>
+      <div class="explain"><p>원천 데이터는 한 문서에 섞이지 않는다. NPC 문서는 인물의 말투와 직접 아는 지식을, Quest 문서는 진행 상태와 단서 흐름을, World 문서는 여러 인물이 공유하는 사건과 진실을 담당한다. 이렇게 나누면 같은 사건을 여러 NPC가 다르게 알고 있는 상황을 복사 대신 관계로 표현할 수 있다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="augmentation-added-items">
-      <div class="slide-kicker">07 / Added Items</div>
-      <h2>증강 항목은 대화 제어에 필요한 최소 단위다</h2>
-      <div class="visual badge-grid" aria-label="증강 항목 목록">
-        <span>퀘스트 목적</span><span>진행 단계</span><span>오답 가설</span><span>힌트 흐름</span><span>정답 공개 정책</span><span>NPC 지식 조각</span>
+    <section class="slide" data-slide-id="story-chunk-metadata">
+      <p class="slide-kicker">07 / Chunk Contract</p>
+      <h2>KnowledgeChunk metadata는 공개 조건 계약.</h2>
+      <div class="slide-body two-column">
+        <div class="code-panel"><pre><code>chunk_id
+phase
+title
+knowledge_type
+quest_id
+location_ids
+event_ids
+clue_ids
+allowed_roles
+answer_sensitive
+hint_level
+tags</code></pre></div>
+        <ul class="detail-list compact">
+          <li><b>식별</b><span>chunk_id, phase, title은 사람이 검토할 수 있는 최소 단위를 만든다.</span></li>
+          <li><b>연결</b><span>quest_id, location_ids, event_ids, clue_ids는 graph relationship 대상이다.</span></li>
+          <li><b>제어</b><span>allowed_roles, answer_sensitive, hint_level은 runtime gate에 직접 쓰인다.</span></li>
+        </ul>
       </div>
-      <div class="explain">
-        <p>증강으로 추가된 것은, 퀘스트 목적, 진행 단계, 오답 가설, 힌트 흐름, 정답 공개 정책, NPC 지식 조각이다. 각 항목은 보기 좋은 설정이 아니라 런타임에서 말을 허용하거나 막는 기준으로 쓰인다.</p>
-      </div>
+      <div class="explain"><p>KnowledgeChunk metadata는 작성 규칙이자 실행 계약이다. 제목과 본문은 prompt에 들어갈 수 있지만, 내부 식별자와 민감도 같은 제어 정보는 검색 단계에서만 사용된다. answer_sensitive requires hint_level 3 규칙은 정답성 정보가 낮은 힌트 단계에서 열리지 않게 만드는 검증 기준이다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="quest-expansion-schema">
-      <div class="slide-kicker">08 / Quest Expansion</div>
-      <h2>story_expansion은 퀘스트 내부에 통합된다</h2>
-      <figure class="evidence-card">
-        <img src="assets/neo4j-live-quests.png" alt="Neo4j Browser에서 Quest와 관련 관계를 확인한 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Neo4j 캡처: quest evidence</figcaption>
-      </figure>
-      <div class="explain">
-        <p>story_expansion은 rsc/data/quests/*.yaml 안에 통합한다, story_purpose, quest_steps, wrong_hypotheses, hint_flow, answer_reveal_policy, completion. 퀘스트 파일 안에 정책을 두면 import와 운영 검증이 같은 기준을 공유한다.</p>
+    <section class="slide" data-slide-id="data-splitting-criteria">
+      <p class="slide-kicker">08 / Split Rules</p>
+      <h2>분할 기준은 문장 길이보다 공개 권한.</h2>
+      <div class="slide-body two-column">
+        <ul class="detail-list">
+          <li><b>화자</b><span>같은 사건도 민민의 생활 관찰과 로완의 행정 판단은 다른 chunk다.</span></li>
+          <li><b>힌트 단계</b><span>초기 관찰, 중간 가설, 최종 대조는 hint_level로 분리한다.</span></li>
+          <li><b>정답 민감도</b><span>최종 원인이나 결론은 answer_sensitive와 quest_state gate를 함께 통과해야 한다.</span></li>
+        </ul>
+        <div class="architecture-map three-lane">
+          <article><span>Example</span><b>민민</b><p>농장 냄새, 가축 행동, 숲 입구의 변화.</p></article>
+          <article><span>Example</span><b>루미</b><p>마나 반응 가능성과 실험 가설.</p></article>
+          <article><span>Example</span><b>로완</b><p>보고 종합과 최종 대조 판단.</p></article>
+        </div>
       </div>
+      <div class="explain"><p>chunk를 문장 길이로 자르면 검색 제어가 거칠어진다. Hazel 데이터는 말하는 주체, 퀘스트 연결, 힌트 단계, answer_sensitive 여부가 달라지는 순간 별도 chunk로 나눈다. 이 방식은 작은 데이터셋에서도 인물별 지식 차이와 퀘스트 공개 순서를 명확히 보여 준다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="quest-example-glowing">
-      <div class="slide-kicker">09 / Quest Example</div>
-      <h2>빛나는 몽실버섯은 관찰과 오답 반증을 함께 둔다</h2>
-      <div class="visual timeline" aria-label="q_glowing_mushroom 단계">
-        <div><b>observe_light</b><span>밤에만 강해지는 빛을 본다.</span></div>
-        <div><b>compare_moon</b><span>달이 밝으면 더 보였단다</span></div>
-        <div><b>whm_bad_weather</b><span>날씨 때문에 버섯이 밝아졌다</span></div>
-        <div><b>disproof</b><span>마나 반응 단서로 날씨 단독 가설을 낮춘다.</span></div>
+    <section class="slide" data-slide-id="loading-validation-criteria">
+      <p class="slide-kicker">09 / Loading</p>
+      <h2>적재 파이프라인은 검증 후 Neo4j 병합.</h2>
+      <div class="slide-body two-column">
+        <ol class="process-list">
+          <li><b>원천 읽기</b><span>structured NPC, Quest, World 파일만 import 대상으로 선택한다.</span></li>
+          <li><b>metadata 검증</b><span>필수 key와 clue 참조, answer_sensitive 규칙을 검사한다.</span></li>
+          <li><b>노드 병합</b><span>NPC, Role, Location, Quest, Event, Clue, Truth, KnowledgeChunk를 MERGE한다.</span></li>
+          <li><b>관계 생성</b><span>KNOWS, RELATED_TO, MENTIONS, ABOUT, POINTS_TO 관계를 구성한다.</span></li>
+        </ol>
+        <div class="code-panel"><pre><code>Import complete.
+NPCs: 4
+Locations: 8
+Quests: 5
+Roles: 4
+Events: 5
+Clues: 8
+Truths: 3
+KnowledgeChunks: 26</code></pre></div>
       </div>
-      <div class="explain">
-        <p>rsc/data/quests/q_glowing_mushroom.yaml, observe_light, 달이 밝으면 더 보였단다, whm_bad_weather, 날씨 때문에 버섯이 밝아졌다. 이 예시는 힌트와 오답 가설이 같은 퀘스트 안에서 관리되는 방식을 보여 준다.</p>
-      </div>
+      <div class="explain"><p>적재는 reset이 아니라 병합 기준이다. importer는 원천 파일을 읽은 뒤 필수 metadata를 검사하고, 정답 민감 chunk가 hint_level 3을 지키는지 확인한다. 그 다음 노드와 관계를 Neo4j에 반영한다. 이 과정은 데이터 작성 실수와 런타임 검색 실패를 분리해 찾기 위한 기반이다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="quest-example-main">
-      <div class="slide-kicker">10 / Main Quest Example</div>
-      <h2>포자의 밤은 단일 원인 단정을 막는 최종 종합이다</h2>
-      <div class="visual policy-board" aria-label="q_main_spore_night 공개 정책">
-        <div><b>align_direction</b><span>발자국과 표지판이 숲 입구를 가리킨다.</span></div>
-        <div><b>single_culprit_only</b><span>한 명의 장난이나 한 사건만으로 모든 일이 벌어졌다</span></div>
-        <div><b>reveal gate</b><span>can_reveal_truth_before_required_clues: false</span></div>
+    <section class="slide" data-slide-id="neo4j-design-goals">
+      <p class="slide-kicker">10 / Neo4j Goals</p>
+      <h2>Neo4j 설계 목표는 관계로 후보를 줄이는 것.</h2>
+      <div class="slide-body two-column">
+        <ul class="detail-list">
+          <li><b>설명 가능성</b><span>어떤 NPC가 어떤 chunk를 알고 있는지 graph path로 확인한다.</span></li>
+          <li><b>확장성</b><span>새 NPC와 퀘스트는 기존 vocabulary와 relationship에 붙는다.</span></li>
+          <li><b>권한성</b><span>관계는 후보를 만들고 속성은 runtime filter를 완성한다.</span></li>
+        </ul>
+        <div class="code-panel"><pre><code>NPC-[:KNOWS]->KnowledgeChunk
+KnowledgeChunk-[:RELATED_TO]->Quest
+KnowledgeChunk-[:MENTIONS]->Location
+KnowledgeChunk-[:MENTIONS]->Event
+KnowledgeChunk-[:ABOUT]->Clue
+Quest-[:POINTS_TO]->Truth</code></pre></div>
       </div>
-      <div class="explain">
-        <p>rsc/data/quests/q_main_spore_night.yaml, align_direction, single_culprit_only, 한 명의 장난이나 한 사건만으로 모든 일이 벌어졌다, can_reveal_truth_before_required_clues: false. 최종 퀘스트는 단서가 모일 때까지 결론을 지연한다.</p>
-      </div>
+      <div class="explain"><p>Neo4j 선택의 목적은 시각화가 아니라 관계 기반 통제다. NPC와 KnowledgeChunk가 직접 연결되어야 “현재 NPC가 알 수 있는가”를 검색 시작점에서 제한할 수 있다. Quest, Location, Event, Clue, Truth 관계는 같은 이야기 사실을 퀘스트 흐름과 단서 구조 안에서 재사용하게 만든다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="minmin-source-overview">
-      <div class="slide-kicker">11 / Minmin Source</div>
-      <h2>민민 부인은 생활 관찰 중심 NPC다</h2>
-      <div class="visual minmin-map" aria-label="민민 부인 원천 맵">
-        <div class="identity"><b>minmin_lady</b><span>민민 부인</span></div>
-        <div class="identity"><b>farmer</b><span>동쪽 농장 생활 감각</span></div>
-        <div class="identity"><b>east_farm</b><span>농장 피해와 생물 변화</span></div>
-        <div class="identity"><b>q_glowing_mushroom</b><span>빛 변화의 첫 관찰자</span></div>
+    <section class="slide" data-slide-id="neo4j-node-model">
+      <p class="slide-kicker">11 / Node Model</p>
+      <h2>노드 모델은 이야기 세계의 공통 vocabulary.</h2>
+      <div class="slide-body two-column">
+        <div class="architecture-map">
+          <article><span>Actor</span><b>NPC / Role</b><p>화자와 플레이어 역할.</p></article>
+          <article><span>Plot</span><b>Quest / Truth</b><p>진행 단위와 최종 사실.</p></article>
+          <article><span>World</span><b>Location / Event / Clue</b><p>공간, 사건, 단서.</p></article>
+          <article><span>Evidence</span><b>KnowledgeChunk</b><p>prompt 후보가 되는 지식 조각.</p></article>
+        </div>
+        <ul class="detail-list compact">
+          <li><b>중심</b><span>KnowledgeChunk는 runtime retrieval의 직접 후보.</span></li>
+          <li><b>보조</b><span>Role, Clue, Truth는 권한과 진행 단계 설명에 쓰인다.</span></li>
+          <li><b>운영</b><span>ConceptStory는 Admin standalone node로 별도 관리된다.</span></li>
+        </ul>
       </div>
-      <div class="explain">
-        <p>minmin-map은 민민 부인을 대표 사례로 둔다. 그녀는 마법 원리나 최종 진실을 말하지 않고, 농장과 숲 입구에서 직접 본 변화만 전달한다. 그래서 GraphRAG의 “아는 범위 제한”을 설명하기 좋다.</p>
-      </div>
+      <div class="explain"><p>노드 모델은 이야기 데이터를 기계가 검색할 수 있게 만든 vocabulary다. NPC는 발화 주체이고 Role은 플레이어 관점이다. Quest와 Truth는 진행 및 결론 구조를 나타낸다. KnowledgeChunk는 실제 prompt 후보이므로 가장 많은 metadata를 가진다. ConceptStory는 현재 검색 후보가 아니라 Admin에서 관리하는 별도 노드다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="minmin-frontmatter-visual">
-      <div class="slide-kicker">12 / Frontmatter</div>
-      <h2>frontmatter는 NPC 노드의 기본 좌표다</h2>
-      <div class="visual profile-visual" aria-label="민민 frontmatter 시각화">
-        <code>npc_id: minmin_lady</code>
-        <code>role: farmer</code>
-        <code>location_id: east_farm</code>
-        <code>main_quest: q_glowing_mushroom</code>
-        <code>restricted_knowledge: final_truth</code>
+    <section class="slide" data-slide-id="neo4j-relationship-model">
+      <p class="slide-kicker">12 / Relationship Model</p>
+      <h2>관계 모델은 NPC별 검색 시작점.</h2>
+      <div class="slide-body diagram-first">
+        <div class="code-panel"><pre><code>flowchart LR
+  NPC --> KNOWS --> KnowledgeChunk
+  KnowledgeChunk --> RELATED_TO --> Quest
+  KnowledgeChunk --> MENTIONS --> Location
+  KnowledgeChunk --> MENTIONS --> Event
+  KnowledgeChunk --> ABOUT --> Clue
+  Quest --> POINTS_TO --> Truth</code></pre></div>
+        <ul class="detail-list compact">
+          <li><b>KNOWS</b><span>NPC별 후보 범위를 만든다.</span></li>
+          <li><b>RELATED_TO</b><span>퀘스트 일치 우선 정렬에 연결된다.</span></li>
+          <li><b>ABOUT</b><span>단서와 hint level 설명에 쓰인다.</span></li>
+          <li><b>POINTS_TO</b><span>Quest와 Truth의 결론 구조를 표현한다.</span></li>
+        </ul>
       </div>
-      <div class="explain">
-        <p>npc_id: minmin_lady, role: farmer, location_id: east_farm, main_quest: q_glowing_mushroom. 이 네 값은 NPC 노드의 기본 위치와 역할을 고정한다. 제한 지식은 prompt에서 모르는 것을 말하지 않게 하는 문장으로도 쓰인다.</p>
-      </div>
+      <div class="explain"><p>관계 모델의 핵심은 `NPC-[:KNOWS]->KnowledgeChunk`다. runtime은 선택된 NPC에서 출발하므로 다른 NPC가 알고 있는 지식은 애초에 후보가 되지 않는다. 이후 Quest, Clue, Truth 연결은 검색 결과를 해석하고 공개 정책을 설명하는 근거가 된다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="minmin-chunk-distribution">
-      <div class="slide-kicker">13 / Chunk Distribution</div>
-      <h2>NPC별 KnowledgeChunk 분포는 지식 밀도를 보여 준다</h2>
-      <div class="visual chunk-distribution" aria-label="NPC별 chunk 분포">
-        <div style="--bar: 80%"><b>minmin_lady</b><span>8</span></div>
-        <div style="--bar: 60%"><b>patrol_leader_rio</b><span>6</span></div>
-        <div style="--bar: 50%"><b>mage_lumi</b><span>5</span></div>
-        <div style="--bar: 70%"><b>chief_rowan</b><span>7</span></div>
+    <section class="slide" data-slide-id="neo4j-design-process">
+      <p class="slide-kicker">13 / Design Process</p>
+      <h2>설계 과정은 원천 계약에서 graph 검증까지.</h2>
+      <div class="slide-body wide-flow">
+        <ol class="process-list horizontal">
+          <li><b>원천 분리</b><span>NPC 문서와 Quest YAML에서 발화 주체, 진행 상태, 단서 ID를 분리한다.</span></li>
+          <li><b>chunk 계약</b><span>allowed_roles, hint_level, answer_sensitive를 runtime gate와 같은 이름으로 고정한다.</span></li>
+          <li><b>관계 매핑</b><span>NPC는 KNOWS로, chunk는 Quest, Location, Event, Clue와 관계로 연결한다.</span></li>
+          <li><b>검증 화면</b><span>Neo4j Browser와 Streamlit debug 화면으로 적재와 검색 결과를 확인한다.</span></li>
+        </ol>
+        <div class="decision-strip"><span>Decision</span><b>관계는 후보 축소, 속성은 권한 판정.</b><p>이 분리는 graph traversal과 runtime filter를 서로 보완하게 만든다.</p></div>
       </div>
-      <div class="explain">
-        <p>chunk-distribution은 네 NPC가 모두 균형 있게 문서화되었음을 보여 준다. 민민은 8개, 리오는 6개, 루미는 5개, 로완은 7개다. 전체 그래프에는 NPC 4, Quest 5, KnowledgeChunk 26, Nodes 63, Relationships 238이 들어간다.</p>
-      </div>
+      <div class="explain"><p>이 장은 원천 문서가 곧바로 graph가 되는 것이 아니라, 공개 조건을 가진 계약으로 정리된 뒤 적재된다는 점을 보여 준다. NPC 문서와 Quest YAML에서 발화 주체, 진행 상태, 단서 ID를 분리하고, 그 값을 importer와 runtime이 같은 이름으로 공유한다. 그래서 설계의 핵심은 예쁜 도식이 아니라 “작성 규칙이 실행 조건으로 이어지는 흐름”이다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="minmin-chunk-to-dict">
-      <div class="slide-kicker">14 / Chunk Transform</div>
-      <h2>story-chunk는 dict로 바뀐 뒤 그래프 적재 입력이 된다</h2>
-      <div class="visual transform-board" aria-label="chunk 변환 보드">
-        <div><b>source fence</b><span>minmin_chronicle_003</span></div>
-        <div><b>metadata</b><span>quest_id, clue_ids, allowed_roles</span></div>
-        <div><b>dict</b><span>text_ref, hint_level, answer_sensitive</span></div>
-        <div><b>graph input</b><span>node props + relationship targets</span></div>
-      </div>
-      <div class="explain">
-        <p>minmin_chronicle_003, 민민 부인이 본 몽실버섯의 변화, 몽실버섯이 밤에 빛나고, 달이 밝은 날에는 더 눈에 띄며. 이 본문은 출처와 조건을 잃지 않은 dict로 변환된 뒤 Neo4j에 들어간다.</p>
-      </div>
+    <section class="slide" data-slide-id="neo4j-overview-evidence">
+      <p class="slide-kicker">14 / Evidence</p>
+      <h2>Graph overview는 전체 적재 범위의 증거.</h2>
+      <figure class="evidence-card"><img src="assets/neo4j-live-overview.png" alt="실제 Neo4j overview 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: Neo4j Browser에서 전체 label과 관계 구조를 확인한 화면.</figcaption></figure>
+      <div class="explain"><p>Neo4j overview는 설계가 실제 DB 구조로 반영된 상태를 보여 준다. NPC, Quest, KnowledgeChunk, Clue, Truth가 각각 노드로 들어가고, 이후 장에서 확인할 NPC별 KNOWS 관계와 quest 단서 관계의 기준점이 된다. 원천 파일이 graph 구조로 변환되었는지 확인하는 기준 화면이다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="minmin-load-criteria">
-      <div class="slide-kicker">15 / Load Criteria</div>
-      <h2>적재 기준은 ID, 출처, 관계, 공개 정책이다</h2>
-      <div class="visual load-criteria" aria-label="적재 기준 카드">
-        <div>고유 ID</div><div>출처 보존</div><div>관계 생성</div><div>공개 정책</div>
-      </div>
-      <div class="explain">
-        <p>고유 ID, 출처 보존, 관계 생성, 공개 정책, NPC<br>minmin_lady, KnowledgeChunk<br>003 mushroom, RELATED_TO, POINTS_TO. 이 네 기준은 같은 원천을 여러 번 적재해도 관계가 재현 가능하도록 만든다.</p>
-      </div>
+    <section class="slide" data-slide-id="neo4j-quest-evidence">
+      <p class="slide-kicker">15 / Evidence</p>
+      <h2>Quest graph는 단서와 정답 공개 흐름의 증거.</h2>
+      <figure class="evidence-card"><img src="assets/neo4j-live-quests.png" alt="실제 Neo4j quest graph 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: 퀘스트와 단서, 진실 연결을 graph에서 확인한 화면.</figcaption></figure>
+      <div class="explain"><p>Quest 중심 graph는 이야기 진행과 공개 조건을 설명한다. 퀘스트는 단서와 연결되고, 최종 truth는 quest_state가 충분히 올라간 뒤에만 answer_sensitive chunk를 통해 prompt 후보가 된다. 이 구조 덕분에 플레이어가 정답을 묻더라도 진행 상태가 낮으면 최종 대조 정보가 열리지 않는다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="minmin-graph-structure">
-      <div class="slide-kicker">16 / Minmin Graph</div>
-      <h2>민민 기준 그래프는 생활 관찰을 단서로 연결한다</h2>
-      <div class="visual minmin-graph" aria-label="민민 그래프 구조">
-        <div class="graph-node npc">NPC<br>minmin_lady</div>
-        <div class="edge">KNOWS</div>
-        <div class="graph-node chunk">KnowledgeChunk<br>003 mushroom</div>
-        <div class="edge">RELATED_TO</div>
-        <div class="graph-node quest">Quest<br>q_glowing_mushroom</div>
-        <div class="edge">POINTS_TO</div>
-        <div class="graph-node clue">Clue<br>moonlit night</div>
-      </div>
-      <div class="explain">
-        <p>minmin-graph는 `NPC-[:KNOWS]->KnowledgeChunk`를 시작점으로 삼는다. chunk는 퀘스트와 단서에 이어지지만, 민민의 말은 생활 관찰 범위를 넘지 않는다. 그래프 연결과 공개 정책이 함께 있어야 이 제한이 지켜진다.</p>
-      </div>
+    <section class="slide" data-slide-id="npc-minmin-graph-evidence">
+      <p class="slide-kicker">16 / Evidence</p>
+      <h2>민민 graph는 생활 관찰 지식의 범위.</h2>
+      <figure class="evidence-card"><img src="assets/neo4j-live-minmin.png" alt="실제 Neo4j 민민 부인 graph 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: 민민 부인과 연결된 KnowledgeChunk를 Neo4j에서 확인한 화면.</figcaption></figure>
+      <div class="explain"><p>민민 부인은 농장과 숲 입구를 생활 관찰로 설명하는 NPC다. 민민 graph는 farmer 역할과 초기 quest 상태에서 사용할 수 있는 관찰 chunk를 보여 준다. 이 인물의 장점은 최종 원인을 단정하지 않고 냄새, 가축 행동, 마을 소문처럼 플레이어가 다음 조사를 떠올릴 수 있는 근거를 제공한다는 점이다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="minmin-runtime-trace">
-      <div class="slide-kicker">17 / Runtime Trace</div>
-      <h2>민민 질의는 권한 필터를 통과한 chunk만 prompt에 들어간다</h2>
-      <div class="visual runtime-trace" aria-label="민민 런타임 추적">
-        <div>sidebar state</div><div>minmin_lady</div><div>farmer</div><div>hint 1</div><div>Cypher gate</div><div>allowed chunks</div><div>prompt assembly</div><div>streaming response</div>
-      </div>
-      <div class="explain">
-        <p>runtime-trace는 사용자가 고른 상태가 곧 조회 조건이 되는 흐름을 보여 준다. 농부 역할과 hint 1에서는 관찰 chunk가 열리지만, 정답 민감 chunk는 열리지 않는다. 따라서 정답만 요구해도 민민은 본 것만 말한다.</p>
-      </div>
+    <section class="slide" data-slide-id="npc-rio-graph-evidence">
+      <p class="slide-kicker">17 / Evidence</p>
+      <h2>리오 graph는 현장 증거 지식의 범위.</h2>
+      <figure class="evidence-card"><img src="assets/neo4j-live-rio.png" alt="실제 Neo4j 리오 graph 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: 순찰대장 리오의 물리 증거 chunk 연결을 확인한 화면.</figcaption></figure>
+      <div class="explain"><p>리오는 순찰 기록과 물리 증거를 중심으로 말한다. graph에서는 발자국, 울타리, 표지판 변경 흔적처럼 knight 역할에 맞는 단서가 연결된다. 리오의 chunk는 마나 원리나 최종 truth보다 방향, 흔적, 위험도를 설명하도록 제한되어 NPC별 지식 차이를 보여 준다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="neo4j-graph-evidence">
-      <div class="slide-kicker">18 / Live Neo4j Evidence</div>
-      <h2>실제 Docker Neo4j에서 전체 그래프를 확인했다</h2>
-      <figure class="evidence-card">
-        <img src="assets/neo4j-live-overview.png" alt="Neo4j Browser 전체 그래프 overview 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Neo4j 캡처 · 캡처 메타데이터 · http://127.0.0.1:17474</figcaption>
-      </figure>
-      <div class="explain">
-        <p>이 화면은 합성 그림이 아니라 Docker Neo4j Browser에서 확인한 그래프 증거다. 노드 수는 Clue 8, Event 5, KnowledgeChunk 26, Location 8, NPC 4, Quest 5, Role 4, Truth 3으로 맞춰졌다.</p>
-      </div>
+    <section class="slide" data-slide-id="npc-lumi-graph-evidence">
+      <p class="slide-kicker">18 / Evidence</p>
+      <h2>루미 graph는 마나 가설 지식의 범위.</h2>
+      <figure class="evidence-card"><img src="assets/neo4j-live-lumi.png" alt="실제 Neo4j 루미 graph 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: 마도사 루미의 분석형 KnowledgeChunk 연결을 확인한 화면.</figcaption></figure>
+      <div class="explain"><p>루미는 마나 농도와 포자 반응을 가설로 제시하는 NPC다. 중요한 점은 중간 분석이 최종 정답과 다르다는 것이다. 루미의 chunk는 answer_sensitive를 열지 않아도 hint level 2 수준의 가능성을 말할 수 있고, 플레이어가 추가 단서를 확인하도록 유도한다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="neo4j-minmin-evidence">
-      <div class="slide-kicker">19 / Live Minmin Evidence</div>
-      <h2>민민 부인의 KNOWS 관계도 실제 그래프에서 확인한다</h2>
-      <figure class="evidence-card">
-        <img src="assets/neo4j-live-minmin.png" alt="Neo4j Browser 민민 부인 중심 그래프 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Neo4j 캡처 · minmin_lady 중심 관계</figcaption>
-      </figure>
-      <div class="explain">
-        <p>민민 부인 캡처는 `NPC-[:KNOWS]->KnowledgeChunk` 구조가 실제 데이터로 존재함을 보여 준다. 화면 증거는 문서 다이어그램의 장식이 아니라, 런타임 필터가 조회하는 그래프 표면이다.</p>
-      </div>
+    <section class="slide" data-slide-id="npc-rowan-graph-evidence">
+      <p class="slide-kicker">19 / Evidence</p>
+      <h2>로완 graph는 최종 대조 지식의 범위.</h2>
+      <figure class="evidence-card"><img src="assets/neo4j-live-rowan.png" alt="실제 Neo4j 로완 graph 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: 헤이즐 촌장 로완의 최종 판단 chunk 연결을 확인한 화면.</figcaption></figure>
+      <div class="explain"><p>로완은 여러 보고를 종합하는 인물이다. 그의 graph에는 answer_sensitive chunk가 포함되지만, 이 정보는 lord 역할과 ready_to_answer 또는 solved 상태에서만 열리는 구조로 설계되어 있다. 따라서 로완은 단서가 충분히 모인 후 최종 대조를 제공하는 역할을 맡는다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="runtime-filter-query">
-      <div class="slide-kicker">20 / Runtime Filter</div>
-      <h2>Cypher gate는 NPC, 역할, 힌트, 상태를 동시에 본다</h2>
-      <div class="visual code-panel" aria-label="runtime filter query">
-        <code>MATCH (:NPC {npc_id: $npc_id})-[:KNOWS]->(k:KnowledgeChunk)</code>
-        <code>$player_role IN k.allowed_roles</code>
-        <code>k.hint_level &lt;= $allowed_hint_level</code>
-        <code>k.answer_sensitive = false OR $quest_state IN ["ready_to_answer", "solved"]</code>
+    <section class="slide" data-slide-id="access-control-model">
+      <p class="slide-kicker">20 / Access Model</p>
+      <h2>접근 제어는 NPC, 역할, 힌트, 상태 gate.</h2>
+      <div class="slide-body two-column">
+        <ol class="process-list">
+          <li><b>NPC Gate</b><span>선택 NPC가 KNOWS로 연결된 chunk만 후보.</span></li>
+          <li><b>Role Gate</b><span>player_role IN k.allowed_roles 조건을 통과.</span></li>
+          <li><b>Hint Gate</b><span>k.hint_level &lt;= $allowed_hint_level 조건을 통과.</span></li>
+          <li><b>State Gate</b><span>answer_sensitive 정보는 quest_state IN [ready_to_answer, solved]에서 공개.</span></li>
+        </ol>
+        <div class="decision-strip"><span>Contract</span><b>정보 접근 권한은 prompt 이전 단계.</b><p>모델에게 모든 지식을 주고 지키라고 요구하는 방식이 아니라, 검색 후보를 먼저 줄인다.</p></div>
       </div>
-      <div class="explain">
-        <p>MATCH (:NPC {npc_id: $npc_id})-[:KNOWS]->(k:KnowledgeChunk), $player_role IN k.allowed_roles, k.hint_level &lt;= $allowed_hint_level, k.answer_sensitive = false OR $quest_state IN. 이 조건이 정답 공개를 코드 수준에서 늦춘다.</p>
-      </div>
+      <div class="explain"><p>정보 접근 권한은 네 단계로 계산된다. 첫 단계에서 NPC가 모르는 chunk는 제외되고, 이후 플레이어 역할과 hint level, quest_state가 차례로 적용된다. 이 구조는 prompt 누락이나 모델 해석에만 의존하지 않고 데이터베이스 조회 결과 자체를 제한한다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="runtime-gates-visual">
-      <div class="slide-kicker">21 / Gates</div>
-      <h2>런타임 gate는 세로로 쌓이는 검문소처럼 동작한다</h2>
-      <div class="visual gate-stack" aria-label="런타임 게이트 구조">
-        <div><b>NPC gate</b><span>선택 NPC가 KNOWS로 연결한 chunk만 후보</span></div>
-        <div><b>Role gate</b><span>player_role이 allowed_roles에 포함되어야 함</span></div>
-        <div><b>Hint gate</b><span>hint_level이 허용 레벨 이하일 때만 통과</span></div>
-        <div><b>Reveal gate</b><span>answer_sensitive는 ready_to_answer 이후에만 통과</span></div>
+    <section class="slide" data-slide-id="retrieval-query-gates">
+      <p class="slide-kicker">21 / Query Gate</p>
+      <h2>Cypher 조건은 공개 정책의 실행 형태.</h2>
+      <div class="slide-body code-and-notes">
+        <div class="code-panel"><pre><code>MATCH (:NPC {npc_id: $npc_id})-[:KNOWS]->(k:KnowledgeChunk)
+WHERE
+  ($quest_id IS NULL OR k.quest_id = $quest_id OR k.quest_id IS NULL)
+  AND $player_role IN k.allowed_roles
+  AND k.hint_level &lt;= $allowed_hint_level
+  AND (k.answer_sensitive = false OR $quest_state IN ["ready_to_answer", "solved"])</code></pre></div>
+        <ul class="detail-list compact">
+          <li><b>player_role IN k.allowed_roles</b><span>역할 기반 발화 제한.</span></li>
+          <li><b>k.hint_level &lt;= $allowed_hint_level</b><span>퀘스트 진행 단계 제한.</span></li>
+          <li><b>quest_state IN [ready_to_answer, solved]</b><span>정답성 정보 공개 조건.</span></li>
+        </ul>
       </div>
-      <div class="explain">
-        <p>각 gate는 독립 장식이 아니라 실제 Cypher WHERE 조건의 시각화다. 하나라도 통과하지 못한 chunk는 prompt assembly 단계에 들어가지 않는다. 이 방식은 NPC 성격과 퀘스트 진행을 같은 조회 과정에서 묶는다.</p>
-      </div>
+      <div class="explain"><p>query gate는 source metadata와 Neo4j 관계가 Streamlit runtime 조건으로 이어지는 지점이다. `answer_sensitive` 정보는 낮은 단계에서 제외되고, role과 hint level은 모든 chunk에 공통으로 적용된다. 이 조건을 통과한 chunk만 prompt 후보가 된다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="prompt-build-process">
-      <div class="slide-kicker">22 / Prompt Build</div>
-      <h2>허용 chunk만 NPC 프롬프트의 근거가 된다</h2>
-      <div class="visual process-step-grid" aria-label="prompt build process">
-        <div>get_allowed_chunks</div><div>NPC profile</div><div>build_prompt</div><div>policy text</div><div>stream_gemma_response</div><div>/v1/chat/completions</div><div>stream=true</div><div>delta output</div>
+    <section class="slide" data-slide-id="retrieval-sort-limit">
+      <p class="slide-kicker">22 / Ranking</p>
+      <h2>정렬과 LIMIT는 prompt 초점과 길이를 제어.</h2>
+      <div class="slide-body two-column">
+        <div class="code-panel"><pre><code>ORDER BY
+  CASE WHEN k.quest_id = $quest_id THEN 0 ELSE 1 END,
+  k.hint_level DESC,
+  k.chunk_id ASC
+LIMIT 8</code></pre></div>
+        <ul class="detail-list compact">
+          <li><b>정확한 quest</b><span>현재 대화 퀘스트와 연결된 chunk를 먼저 사용한다.</span></li>
+          <li><b>높은 hint</b><span>허용 범위 안에서는 더 구체적인 단서를 우선한다.</span></li>
+          <li><b>최대 개수</b><span>LIMIT 8로 prompt에 들어가는 근거량을 제한한다.</span></li>
+        </ul>
       </div>
-      <div class="explain">
-        <p>get_allowed_chunks, build_prompt, stream_gemma_response, /v1/chat/completions, stream=true. prompt에는 NPC 기본 정보, 말투, 금지 지식, 현재 상태, 허용 chunk가 순서대로 들어간다. 모델은 선택된 근거 밖의 사실을 만들지 말라는 정책을 함께 받는다.</p>
-      </div>
+      <div class="explain"><p>검색은 통과 여부만 결정하지 않는다. 같은 조건을 통과한 chunk가 여러 개일 때 현재 quest와 직접 연결된 항목을 먼저 두고, 허용된 hint level 안에서 더 구체적인 정보를 앞에 배치한다. 이 정렬은 prompt 길이와 답변 초점을 함께 관리한다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="streamlit-minmin-query">
-      <div class="slide-kicker">23 / Streamlit Evidence</div>
-      <h2>민민 부인 질의 예시</h2>
-      <figure class="evidence-card">
-        <img src="assets/streamlit-minmin-query.png" alt="Streamlit에서 민민 부인에게 몽실버섯 질문을 한 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Streamlit 캡처 · http://127.0.0.1:18501</figcaption>
-      </figure>
-      <div class="explain">
-        <p>민민 부인 질의 예시: 몽실버섯이 왜 빛나는지 정답만 알려줘. `minmin_lady`는 farmer, east_farm, q_glowing_mushroom의 생활 관찰자이므로 정답 대신 밤, 달빛, 가루 같은 관찰 근거로 답해야 한다.</p>
-      </div>
+    <section class="slide" data-slide-id="retrieval-debug-evidence">
+      <p class="slide-kicker">23 / Evidence</p>
+      <h2>Debug chunks는 검색 gate 결과의 운영 증거.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-debug-chunks.png" alt="실제 Streamlit retrieved chunks 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: Streamlit debug 화면에서 조회된 chunk 목록을 확인한 장면.</figcaption></figure>
+      <div class="explain"><p>이 화면은 답변 뒤에 숨은 검색 결과를 운영자가 직접 확인하는 장치다. 사용자는 NPC 대사만 보지만, 개발자는 선택된 NPC, player role, quest_state, hint_level 조건을 통과한 KnowledgeChunk 목록을 본다. 문제가 생겼을 때 모델 응답만 보지 않고 graph 관계, quest 조건, runtime gate 중 어디에서 근거가 달라졌는지 단계별로 추적할 수 있다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="streamlit-rio-query">
-      <div class="slide-kicker">24 / Streamlit Evidence</div>
-      <h2>순찰대장 리오 질의 예시</h2>
-      <figure class="evidence-card">
-        <img src="assets/streamlit-rio-query.png" alt="Streamlit에서 순찰대장 리오에게 말랑돼지 이동 기록을 질문한 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Streamlit 캡처 · patrol_leader_rio</figcaption>
-      </figure>
-      <div class="explain">
-        <p>순찰대장 리오 질의 예시: 말랑돼지가 왜 같은 방향으로 움직였는지 순찰 기록으로 말해줘. 리오는 `patrol_leader_rio`로서 발자국, 울타리, 표지판 흔적 같은 물리 증거를 중심으로 답한다.</p>
+    <section class="slide" data-slide-id="prompt-assembly">
+      <p class="slide-kicker">24 / Prompt</p>
+      <h2>Prompt 조립은 profile, chunk, memory의 결합.</h2>
+      <div class="slide-body diagram-first">
+        <div class="code-panel"><pre><code>NPC profile
+  name, role, personality, speech_style
+
+Allowed chunks
+  chunk title/text only
+
+Conversation context
+  memory_summary_by_npc
+  recent memory_by_npc turns
+
+User message
+  current question</code></pre></div>
+        <ul class="detail-list compact">
+          <li><b>화자 고정</b><span>NPC 프로필과 말투를 먼저 넣는다.</span></li>
+          <li><b>근거 제한</b><span>허용된 KnowledgeChunk의 title/text만 사용한다.</span></li>
+          <li><b>대화 맥락</b><span>NPC별 요약과 최근 대화로 continuity를 만든다.</span></li>
+        </ul>
       </div>
+      <div class="explain"><p>prompt assembly는 graph retrieval 이후 단계다. 중요한 점은 prompt에 모든 원천 metadata를 넣지 않는 것이다. 모델은 선택된 NPC의 기본 정보, 허용 chunk 본문, 현재 대화 조건, 이전 대화 기억을 받는다. 이 조립 방식은 캐릭터 발화와 접근 제어를 분리해 설명할 수 있게 한다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="streamlit-lumi-query">
-      <div class="slide-kicker">25 / Streamlit Evidence</div>
-      <h2>마도사 루미 질의 예시</h2>
-      <figure class="evidence-card">
-        <img src="assets/streamlit-lumi-query.png" alt="Streamlit에서 마도사 루미에게 반응 비교를 질문한 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Streamlit 캡처 · mage_lumi</figcaption>
-      </figure>
-      <div class="explain">
-        <p>마도사 루미 질의 예시: 방울젤리 색 변화와 버섯 빛이 같은 현상인지 설명해줘. `mage_lumi`는 가설과 반응 비교를 말할 수 있지만, 모든 사건의 최종 결론은 로완의 공개 조건에 맡긴다.</p>
+    <section class="slide" data-slide-id="prompt-metadata-hiding">
+      <p class="slide-kicker">25 / Prompt Safety</p>
+      <h2>Metadata 숨김은 내부 제어값의 발화 차단.</h2>
+      <div class="slide-body two-column">
+        <ul class="detail-list">
+          <li><b>전달</b><span>chunk title/text only.</span></li>
+          <li><b>비전달</b><span>chunk_id, knowledge_type, hint_level, answer_sensitive 같은 내부 metadata.</span></li>
+          <li><b>표현</b><span>내부 metadata를 직접 보여주지 않는다.</span></li>
+        </ul>
+        <div class="code-panel"><pre><code>format_chunk_for_prompt(chunk)
+
+output fields:
+  title
+  text
+
+hidden control fields:
+  chunk_id
+  hint_level
+  answer_sensitive</code></pre></div>
       </div>
+      <div class="explain"><p>검색 gate는 내부 metadata를 사용하지만, NPC-facing prompt에는 해당 metadata를 그대로 노출하지 않는다. 이 분리는 답변에서 데이터베이스 용어, chunk ID, 권한 라벨이 튀어나오는 문제를 줄인다. 사용자는 자연스러운 대사를 보고, 개발자는 debug 화면에서 내부 근거를 확인한다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="streamlit-rowan-query">
-      <div class="slide-kicker">26 / Streamlit Evidence</div>
-      <h2>헤이즐 촌장 로완 질의 예시</h2>
-      <figure class="evidence-card">
-        <img src="assets/streamlit-rowan-query.png" alt="Streamlit에서 헤이즐 촌장 로완에게 최종 대조를 질문한 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Streamlit 캡처 · chief_rowan</figcaption>
-      </figure>
-      <div class="explain">
-        <p>헤이즐 촌장 로완 질의 예시: 필수 단서가 모였을 때 최종 대조 결과를 정리해줘. `chief_rowan`은 lord 역할과 ready_to_answer 상태에서 answer_sensitive 종합 chunk를 사용할 수 있다.</p>
+    <section class="slide" data-slide-id="prompt-leak-mitigation">
+      <p class="slide-kicker">26 / Prompt Safety</p>
+      <h2>누출 완화는 검색 gate와 응답 정책의 이중 구조.</h2>
+      <div class="slide-body two-column">
+        <ul class="detail-list">
+          <li><b>사실 제한</b><span>사용 가능한 지식에 없는 사실을 만들지 않는다.</span></li>
+          <li><b>정답 제한</b><span>ready_to_answer 또는 solved 전에는 힌트 중심으로 답한다.</span></li>
+          <li><b>메타 제한</b><span>시스템, 데이터베이스, RAG, chunk, 권한 같은 용어를 캐릭터 대사로 말하지 않는다.</span></li>
+        </ul>
+        <div class="decision-strip"><span>Result</span><b>prompt 정책은 graph gate의 보조 장치.</b><p>검색 단계에서 좁히고, 응답 정책에서 표현을 다듬는다.</p></div>
       </div>
+      <div class="explain"><p>프롬프트 누출 완화는 두 겹으로 설계된다. 첫째, retrieval gate가 애초에 허용되지 않은 정보를 prompt에 넣지 않는다. 둘째, 응답 정책은 NPC가 내부 시스템 용어를 말하지 않도록 지시한다. 이 구조는 prompt에 모든 정보를 넣고 숨기라고 하는 방식보다 안전하다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="npc-query-matrix">
-      <div class="slide-kicker">27 / NPC Query Matrix</div>
-      <h2>네 NPC 질의는 같은 앱에서 다른 권한을 통과한다</h2>
-      <div class="visual npc-matrix" aria-label="NPC query matrix">
-        <div><b>minmin_lady</b><span>farmer · q_glowing_mushroom · 생활 관찰</span></div>
-        <div><b>patrol_leader_rio</b><span>knight · q_pig_escape · 물리 기록</span></div>
-        <div><b>mage_lumi</b><span>mage · q_jelly_color · 반응 가설</span></div>
-        <div><b>chief_rowan</b><span>lord · q_main_spore_night · 최종 대조</span></div>
+    <section class="slide" data-slide-id="phrase-repetition-mitigation">
+      <p class="slide-kicker">27 / Dialogue Quality</p>
+      <h2>반복 완화는 NPC별 memory context로 처리.</h2>
+      <div class="slide-body two-column">
+        <ul class="detail-list">
+          <li><b>최근 대화</b><span>선택 NPC의 memory_by_npc에 user와 assistant turn을 보관한다.</span></li>
+          <li><b>요약</b><span>길이가 커지면 summarize_memory_turns 결과를 memory_summary_by_npc에 병합한다.</span></li>
+          <li><b>정책</b><span>이전 답변과 같은 표현을 반복하지 않도록 prompt에 반영한다.</span></li>
+        </ul>
+        <div class="code-panel"><pre><code>session-only memory
+memory_by_npc
+memory_summary_by_npc
+max_memory_count_by_npc
+summarize_memory_turns
+previous-response repetition policy</code></pre></div>
       </div>
-      <div class="explain">
-        <p>민민 부인 질의 예시, 순찰대장 리오 질의 예시, 마도사 루미 질의 예시, 헤이즐 촌장 로완 질의 예시를 균형 있게 둔다. 질문 표면은 비슷해도, NPC별 role과 quest_state가 다른 chunk 집합을 만든다.</p>
-      </div>
+      <div class="explain"><p>이전 대화를 기억하지 못하는 문제는 per-NPC session memory로 다룬다. 각 NPC는 자기 memory와 summary를 따로 가지며, prompt 조립 시 선택 NPC의 기억만 들어간다. 반복 표현 완화는 이전 turn을 prompt에 제공하고, 정책에서 같은 표현 반복을 피하도록 명시하는 방식으로 구현된다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="npc-query-minmin">
-      <div class="slide-kicker">28 / NPC Balance</div>
-      <h2>민민은 정답보다 현장 관찰을 보존한다</h2>
-      <div class="visual dossier" aria-label="민민 질의 세부 문서">
-        <div><b>ID</b><span>minmin_lady</span></div><div><b>role</b><span>farmer</span></div><div><b>location</b><span>east_farm</span></div><div><b>query</b><span>몽실버섯이 왜 빛나는지 정답만 알려줘</span></div>
-      </div>
-      <div class="explain">
-        <p>`minmin_lady`는 농장 주인의 감각으로 밤, 달빛, 동물 행동을 연결한다. 정답을 요구받아도 최종 truth를 공개하지 않는다. 이 NPC는 생활 관찰과 공개 정책이 충돌할 때 정책이 우선함을 보여 준다.</p>
-      </div>
+    <section class="slide" data-slide-id="prompt-debug-evidence">
+      <p class="slide-kicker">28 / Evidence</p>
+      <h2>Debug prompt는 최종 입력 구성의 운영 증거.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-debug-prompt.png" alt="실제 Streamlit prompt debug 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: Streamlit debug 화면에서 최종 prompt 구성을 확인한 장면.</figcaption></figure>
+      <div class="explain"><p>prompt debug 화면은 검색 결과가 최종 입력으로 조립되는 과정을 보여 준다. 답변이 이상할 때 NPC profile, 허용 chunk, memory context, 응답 정책 중 어느 부분이 원인인지 분리해 확인할 수 있다. 최종 대화문만 보는 대신 입력 구성 자체를 점검하는 운영 화면이다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="npc-query-rio">
-      <div class="slide-kicker">29 / NPC Balance</div>
-      <h2>리오는 물리 증거를 한 줄로 세운다</h2>
-      <figure class="evidence-card compact">
-        <img src="assets/neo4j-live-rio.png" alt="Neo4j Browser에서 순찰대장 리오 관계를 확인한 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Neo4j 캡처 · patrol_leader_rio</figcaption>
-      </figure>
-      <div class="explain">
-        <p>`patrol_leader_rio`는 knight 역할과 training_ground 위치를 가진다. 말랑돼지가 왜 같은 방향으로 움직였는지 순찰 기록으로 말해줘라는 질문에는 발자국, 울타리, 뿌리 자국처럼 검증 가능한 흔적을 우선한다.</p>
+    <section class="slide" data-slide-id="session-memory-model">
+      <p class="slide-kicker">29 / Memory</p>
+      <h2>세션 메모리는 NPC별 대화 상태.</h2>
+      <div class="slide-body two-column">
+        <div class="architecture-map three-lane">
+          <article><span>Store</span><b>memory_by_npc</b><p>최근 대화 turn을 NPC별 list로 보관.</p></article>
+          <article><span>Summary</span><b>memory_summary_by_npc</b><p>압축된 대화 요약을 NPC별 문자열로 보관.</p></article>
+          <article><span>Limit</span><b>max_memory_count_by_npc</b><p>Admin에서 NPC별 보관량 조정.</p></article>
+        </div>
+        <ul class="detail-list compact">
+          <li><b>현재 범위</b><span>session-only memory.</span></li>
+          <li><b>격리</b><span>선택 NPC의 memory만 prompt context에 들어간다.</span></li>
+          <li><b>운영</b><span>Memory Admin에서 요약과 초기화를 확인한다.</span></li>
+        </ul>
       </div>
+      <div class="explain"><p>메모리 기능은 NPC별 대화 연속성을 위한 세션 상태다. 민민과 대화한 내용이 루미 prompt로 섞이지 않도록 NPC ID를 key로 분리하고, 최근 turn은 memory_by_npc에, 압축된 요약은 memory_summary_by_npc에 보관한다. 현재 범위는 session-only memory이며, 장기 저장은 별도 확장 단계로 둔다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="npc-query-lumi">
-      <div class="slide-kicker">30 / NPC Balance</div>
-      <h2>루미는 가능성을 말하되 최종 판단은 넘긴다</h2>
-      <figure class="evidence-card compact">
-        <img src="assets/neo4j-live-lumi.png" alt="Neo4j Browser에서 마도사 루미 관계를 확인한 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Neo4j 캡처 · mage_lumi</figcaption>
-      </figure>
-      <div class="explain">
-        <p>`mage_lumi`는 mage 역할과 magic_shop 위치를 가진다. 방울젤리 색 변화와 버섯 빛이 같은 현상인지 설명해줘라는 질문에 반응 비교를 제시하지만, 로완의 최종 대조를 대신 공개하지 않는다.</p>
+    <section class="slide" data-slide-id="memory-compaction-path">
+      <p class="slide-kicker">30 / Memory</p>
+      <h2>요약 저장은 장기 기억으로 가는 확장 경로.</h2>
+      <div class="slide-body diagram-first">
+        <ol class="process-list horizontal">
+          <li><b>대화 누적</b><span>NPC별 최근 turn이 memory_by_npc에 쌓인다.</span></li>
+          <li><b>예산 검사</b><span>prompt units가 threshold를 넘는지 확인한다.</span></li>
+          <li><b>요약 병합</b><span>summarize_memory_turns 결과를 memory_summary_by_npc에 반영한다.</span></li>
+          <li><b>재조립</b><span>요약과 현재 chunk로 prompt를 다시 만든다.</span></li>
+        </ol>
+        <div class="decision-strip"><span>Future path</span><b>summary compaction toward future long-term memory.</b><p>현재는 세션 요약이며, Neo4j persisted memory는 별도 확장 대상.</p></div>
       </div>
+      <div class="explain"><p>요약 저장 프로세스는 장기 기억으로 가는 전 단계다. 현재 구현은 context가 커질 때 세션 내 recent turns를 요약하고 prompt를 다시 만드는 방식이다. 이 구조를 유지하면 이후 요약 결과를 별도 노드나 관계로 저장하는 확장 설계를 붙이기 쉽다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="npc-query-rowan">
-      <div class="slide-kicker">31 / NPC Balance</div>
-      <h2>로완은 조건이 모인 뒤에만 종합한다</h2>
-      <figure class="evidence-card compact">
-        <img src="assets/neo4j-live-rowan.png" alt="Neo4j Browser에서 헤이즐 촌장 로완 관계를 확인한 실제 캡처" width="1440" height="900">
-        <figcaption>실제 Docker Neo4j 캡처 · chief_rowan</figcaption>
-      </figure>
-      <div class="explain">
-        <p>`chief_rowan`은 lord 역할과 hazel_square 위치를 가진다. 필수 단서가 모였을 때 최종 대조 결과를 정리해줘라는 질문은 ready_to_answer 이후에만 의미가 있다. 그 전에는 빠진 단서를 되묻는 설계다.</p>
-      </div>
+    <section class="slide" data-slide-id="memory-admin-evidence">
+      <p class="slide-kicker">31 / Evidence</p>
+      <h2>Memory Admin은 세션 기억을 조정하는 운영 화면.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-admin-memory.png" alt="실제 Streamlit Memory Admin 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: NPC별 memory count, summary, 초기화를 관리하는 Admin 화면.</figcaption></figure>
+      <div class="explain"><p>Memory Admin은 세션 메모리를 화면에서 직접 확인하고 조정하는 운영 표면이다. NPC별 max memory count, current summary, 초기화 동작을 한 화면에서 다루므로 대화 품질 문제가 반복 표현 때문인지, 요약 누락 때문인지, NPC별 상태 혼선 때문인지 재현할 수 있다. 메모리 상태는 대화 코드 안에 숨지 않고 조정 가능한 관리 항목으로 분리된다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="full-process-blueprint">
-      <div class="slide-kicker">32 / Full Process</div>
-      <h2>전체 프로세스는 단순한 다섯 노드 체인이 아니다</h2>
-      <div class="visual process-swimlane" aria-label="전체 프로세스 swimlane">
-        <div><b>Source</b><span>frontmatter parse</span><span>story-chunk fence scan</span></div>
-        <div><b>Import</b><span>import plan validation</span><span>relationship upsert</span></div>
-        <div><b>Runtime</b><span>sidebar state</span><span>Cypher gate</span></div>
-        <div><b>LLM</b><span>prompt assembly</span><span>streaming response</span></div>
-        <div><b>Debug</b><span>debug expander</span><span>capture evidence</span></div>
-      </div>
-      <div class="explain">
-        <p>process-swimlane은 원천 파싱부터 응답 확인까지의 책임을 레인으로 나눈다. 각 레인은 실패 지점도 다르다. 그래서 문서에는 source, import, runtime, LLM, debug를 한 화면에 놓아 추적 경로를 남긴다.</p>
-      </div>
+    <section class="slide" data-slide-id="quest-admin-evidence">
+      <p class="slide-kicker">32 / Evidence</p>
+      <h2>Quest Admin은 공개 단계와 hint level을 조정.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-admin-quest.png" alt="실제 Streamlit Quest Admin 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: quest_state와 allowed hint level을 함께 관리하는 Admin 화면.</figcaption></figure>
+      <div class="explain"><p>Quest Admin은 검색 gate에 직접 영향을 주는 상태를 다룬다. quest_state를 바꾸면 linked hint level이 함께 결정되고, main app의 현재 quest와 같을 때 session state가 동기화된다. 이 화면은 story progression이 코드 상수에 묻혀 있지 않고 운영자가 확인할 수 있는 상태로 분리되어 있음을 보여 준다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="source-to-graph-detail">
-      <div class="slide-kicker">33 / Source To Graph</div>
-      <h2>원천에서 그래프로 가는 과정은 검증 가능한 plan을 만든다</h2>
-      <div class="visual process-step-grid" aria-label="source to graph detail">
-        <div>read NPC Markdown</div><div>frontmatter parse</div><div>story-chunk fence scan</div><div>read quest YAML</div><div>world ID validation</div><div>import plan validation</div><div>MERGE node</div><div>relationship upsert</div>
-      </div>
-      <div class="explain">
-        <p>source-to-graph-detail은 DB 접속 전에 plan을 만들고 검증한다. 이 단계에서 NPC 4명, Quest 5개, KnowledgeChunk 26개, 참조 ID 무결성을 먼저 확인한다. 그 뒤 Neo4j에 노드와 관계를 병합한다.</p>
-      </div>
+    <section class="slide" data-slide-id="concept-story-admin-evidence">
+      <p class="slide-kicker">33 / Evidence</p>
+      <h2>Concept Story Admin은 관계 포함 story data를 Neo4j에 적재.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-admin-concept-story.png" alt="실제 Streamlit Concept Story Admin 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: ConceptStory와 관계 정보를 작성해 Neo4j에 병합 적재하는 Admin 화면.</figcaption></figure>
+      <div class="explain"><p>Concept Story Admin은 글로벌 컨셉과 스토리, 로컬 컨셉과 스토리, 몬스터 컨셉과 스토리, 퀘스트 컨셉과 스토리, 인물 컨셉과 스토리를 관계 정보와 함께 작성해 Neo4j에 병합 적재하기 위한 Admin 기능이다. ConceptStory is not the current retrieval source. 작성된 컨셉 데이터는 KnowledgeChunk 검색 경로와 분리된 구조로 관리되고, 관계 링크를 포함해 graph 확장 데이터로 연결된다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="runtime-process-detail">
-      <div class="slide-kicker">34 / Runtime Detail</div>
-      <h2>런타임은 UI 상태를 Cypher 파라미터로 바꾼다</h2>
-      <div class="visual process-step-grid" aria-label="runtime process detail">
-        <div>sidebar state</div><div>NPC profile query</div><div>Cypher gate</div><div>allowed chunk list</div><div>prompt assembly</div><div>OpenAI-compatible payload</div><div>streaming response</div><div>debug expander</div>
+    <section class="slide" data-slide-id="admin-tab-separation">
+      <p class="slide-kicker">34 / Admin</p>
+      <h2>Admin 탭 분리는 상태 변경의 책임을 분리.</h2>
+      <div class="slide-body two-column">
+        <ul class="detail-list">
+          <li><b>Memory Admin</b><span>NPC별 세션 memory, summary, reset, max count.</span></li>
+          <li><b>Quest Admin</b><span>quest_state와 allowed_hint_level 동기화.</span></li>
+          <li><b>Concept Story Admin</b><span>standalone ConceptStory 확인과 MERGE.</span></li>
+        </ul>
+        <div class="code-panel"><pre><code>Admin page responsibilities
+
+memory -> session state
+quest -> quest_state and hint level
+concept -> ConceptStory standalone node
+logs -> feature-split JSONL</code></pre></div>
       </div>
-      <div class="explain">
-        <p>runtime-process-detail은 Streamlit 화면의 선택값이 내부 query로 들어가는 길을 표시한다. `quest_id`, `quest_state`, `player_role`, `allowed_hint_level`은 모두 prompt 문장이 아니라 DB 조회 조건이다.</p>
-      </div>
+      <div class="explain"><p>Admin을 하나의 화면으로 뭉치지 않고 tab으로 분리한 이유는 데이터 방향이 다르기 때문이다. Memory는 세션 상태를 바꾸고, Quest는 retrieval gate 조건을 바꾸며, ConceptStory는 Neo4j standalone node를 다룬다. 책임을 분리하면 운영자가 어떤 변경이 대화 검색에 영향을 주는지 판단하기 쉽다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="operations-feedback-loop">
-      <div class="slide-kicker">35 / Feedback Loop</div>
-      <h2>운영 피드백은 원천 수정으로 되돌아간다</h2>
-      <div class="visual loop-board" aria-label="운영 피드백 루프">
-        <div>Streamlit answer review</div><div>debug expander evidence</div><div>source edit in rsc/data</div><div>dry-run validation</div><div>Neo4j merge load</div><div>capture refresh</div>
-      </div>
-      <div class="explain">
-        <p>답변이 어긋나면 prompt만 만지는 것이 아니라 원천 지식과 공개 조건을 확인한다. 이 루프는 운영자가 잘못된 답변을 발견했을 때 어느 파일로 돌아가야 하는지 보여 준다. 생성 산출물은 수정 대상이 아니라 검증 결과다.</p>
-      </div>
+    <section class="slide" data-slide-id="runtime-chat-evidence">
+      <p class="slide-kicker">35 / Evidence</p>
+      <h2>Runtime chat은 graph 검색과 NPC 응답의 접점.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-live-chat-e2b.png" alt="실제 Streamlit runtime chat 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: GraphRAG 검색과 NPC 응답이 연결된 Streamlit 대화 화면.</figcaption></figure>
+      <div class="explain"><p>runtime chat 화면은 선택된 NPC, player role, quest, quest_state, hint_level을 한 번에 반영해 대화를 생성하는 실행 표면이다. 사용자가 질문을 보내면 Neo4j에서 허용된 KnowledgeChunk를 가져오고, NPC profile과 세션 memory를 함께 prompt로 조립한다. 응답은 단일 채팅 UI에 표시되지만, 내부적으로는 검색 gate, memory context, 응답 정책이 함께 적용된 결과다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="production-apply-overview">
-      <div class="slide-kicker">36 / Production Apply</div>
-      <h2>서버 반영은 pull, env, build, up, import 순서다</h2>
-      <div class="visual ops-rail" aria-label="운영 반영 개요">
-        <div>git pull</div><div>copy env</div><div>build streamlit</div><div>up services</div><div>source import</div><div>verify</div>
-      </div>
-      <div class="explain">
-        <p>운영 DB에는 기본적으로 --reset을 붙이지 않는다. 운영 반영은 기존 데이터를 전체 삭제하는 절차가 아니라 `MERGE` 기반 병합 적재를 기본으로 한다. reset은 분리된 검증 DB처럼 승인된 환경에서만 선택한다.</p>
-      </div>
+    <section class="slide" data-slide-id="npc-query-minmin-evidence">
+      <p class="slide-kicker">36 / Evidence</p>
+      <h2>민민 질의는 초기 관찰 중심 답변의 증거.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-minmin-query.png" alt="실제 Streamlit 민민 질의 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: 민민 부인에게 질문했을 때 관찰 정보 중심으로 응답하는 화면.</figcaption></figure>
+      <div class="explain"><p>민민 질의 화면은 NPC별 지식 제한의 사용자 측 결과다. farmer 역할과 초기 진행 상태에서는 최종 원인보다 농장과 숲 입구의 관찰 정보가 강조된다. 이는 graph에서 민민이 KNOWS로 연결된 chunk와 runtime gate가 함께 적용된 결과다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="production-commands">
-      <div class="slide-kicker">37 / Commands</div>
-      <h2>반영 명령은 반복 가능한 블록으로 고정한다</h2>
-      <div class="visual code-panel" aria-label="production commands">
-        <code>git pull --ff-only origin main</code>
-        <code>cp .env.example .env</code>
-        <code>docker compose --env-file .env build streamlit</code>
-        <code>docker compose --env-file .env up -d neo4j streamlit</code>
-        <code>uv run --frozen python src/db_control/import_story_source_to_neo4j.py --source-dir rsc/data</code>
-      </div>
-      <div class="explain">
-        <p>명령은 서버에서 main을 빠르게 당긴 뒤, `.env`를 만들고 Streamlit 이미지를 다시 빌드하는 순서다. 원천 적재 명령에는 --source-dir rsc/data를 명시한다. 운영 DB에는 기본적으로 --reset을 붙이지 않는다.</p>
-      </div>
+    <section class="slide" data-slide-id="npc-query-rio-evidence">
+      <p class="slide-kicker">37 / Evidence</p>
+      <h2>리오 질의는 물리 흔적 중심 답변의 증거.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-rio-query.png" alt="실제 Streamlit 리오 질의 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: 순찰대장 리오가 현장 증거와 방향성을 중심으로 응답하는 화면.</figcaption></figure>
+      <div class="explain"><p>리오 질의 화면은 역할별 근거 차이를 보여 준다. 리오는 순찰대장으로서 울타리, 발자국, 표지판 같은 물리적 흔적을 우선한다. 이 응답은 같은 세계관 안에서도 NPC graph가 다르면 prompt 근거와 답변 초점이 달라진다는 점을 증명한다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="production-env">
-      <div class="slide-kicker">38 / Environment</div>
-      <h2>환경변수는 DB와 모델 접속면을 고정한다</h2>
-      <div class="visual env-board" aria-label="production environment variables">
-        <div><b>NEO4J_URI</b><span>bolt endpoint</span></div>
-        <div><b>NEO4J_PASSWORD</b><span>secret in env only</span></div>
-        <div><b>VLLM_URL</b><span>OpenAI-compatible endpoint</span></div>
-        <div><b>MODEL_NAME</b><span>google/gemma-4-E4B-it</span></div>
-      </div>
-      <div class="explain">
-        <p>NEO4J_URI, NEO4J_PASSWORD, VLLM_URL, MODEL_NAME, google/gemma-4-E4B-it. 값은 코드에 박지 않고 환경변수로 둔다. 모델명은 Streamlit payload와 vLLM 서버가 같은 대상을 보도록 맞춘다.</p>
-      </div>
+    <section class="slide" data-slide-id="npc-query-lumi-evidence">
+      <p class="slide-kicker">38 / Evidence</p>
+      <h2>루미 질의는 가능성 분석 답변의 증거.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-lumi-query.png" alt="실제 Streamlit 루미 질의 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: 마도사 루미가 마나와 포자 반응을 가능성으로 설명하는 화면.</figcaption></figure>
+      <div class="explain"><p>루미 질의 화면은 중간 가설의 위치를 보여 준다. 루미는 마법적 원인 가능성을 분석하지만, 단서가 부족한 상태에서 최종 truth를 단정하지 않는다. 이는 answer_sensitive와 hint_level 설계가 답변의 확신도를 조절하는 사례다.</p></div>
     </section>
 
-    <section class="slide" data-slide-id="production-verify">
-      <div class="slide-kicker">39 / Verification</div>
-      <h2>분리 검증 스택은 운영 포트와 충돌하지 않는다</h2>
-      <div class="visual code-panel" aria-label="design test verification details">
-        <code>docker compose --env-file .env.design-test.example -f compose.design-test.yaml --profile gpu up -d</code>
-        <code>http://127.0.0.1:17474</code>
-        <code>bolt://127.0.0.1:17687</code>
-        <code>http://127.0.0.1:18501</code>
-        <code>http://127.0.0.1:18000/v1/models</code>
-        <code>neo4j / admin2026</code>
+    <section class="slide" data-slide-id="npc-query-rowan-evidence">
+      <p class="slide-kicker">39 / Evidence</p>
+      <h2>로완 질의는 공개 조건 통과 후 답변의 증거.</h2>
+      <figure class="evidence-card"><img src="assets/streamlit-rowan-query.png" alt="실제 Streamlit 로완 질의 검증 화면" loading="lazy"><figcaption>실제 실행 캡처: 로완과 공개 가능한 상태에서 최종 대조 근거를 확인하는 화면.</figcaption></figure>
+      <div class="explain"><p>로완 질의 화면은 answer_sensitive 공개 조건을 보여 주는 장면이다. lord 역할과 공개 가능한 quest_state에서는 최종 판단에 가까운 근거가 prompt에 들어갈 수 있다. 같은 질문이라도 상태가 낮으면 이 정보가 제외되므로, 화면은 접근 제어가 실제 답변에 반영됨을 보여 준다.</p></div>
+    </section>
+
+    <section class="slide" data-slide-id="outcomes-limits-next">
+      <p class="slide-kicker">40 / Outcome</p>
+      <h2>결과는 end-to-end 연결, 한계는 확장 과제.</h2>
+      <div class="slide-body two-column">
+        <ul class="detail-list">
+          <li><b>결과</b><span>원천 데이터, graph schema, retrieval gate, prompt 조립, session memory, Admin 화면을 end-to-end로 연결.</span></li>
+          <li><b>한계</b><span>embedding index, Neo4j persisted memory, 자동 퀘스트 진행은 현재 구현 범위 밖.</span></li>
+          <li><b>다음 단계</b><span>요약 memory의 영속화, 자동 progression 검증, authoring workflow 개선.</span></li>
+        </ul>
+        <div class="decision-strip"><span>Portfolio value</span><b>구현 범위와 확장 경로가 함께 보이는 사례.</b><p>남은 한계를 숨기지 않고 현재 증거와 다음 개선점을 분리한다.</p></div>
       </div>
-      <div class="explain">
-        <p>검증 스택은 Neo4j Browser, Bolt, Streamlit, vLLM API의 host port를 별도로 쓴다. 이 값은 실제 캡처의 접속면과 일치한다. 운영 서버에서는 기존 컨테이너 주소에 맞춰 환경변수만 바꾸면 된다.</p>
+      <div class="explain"><p>현재 결과는 원천 데이터, Neo4j relationship, runtime retrieval gate, prompt 조립, session memory, Admin 화면을 end-to-end로 연결한 것이다. 남은 한계는 embedding 기반 후보 검색, Neo4j persisted memory, 자동 퀘스트 진행처럼 장기 운영에 필요한 확장 축이다. 다음 단계는 요약 memory의 영속화, progression 조건 검증, authoring workflow 개선으로 이어진다.</p></div>
+    </section>
+
+    <section class="slide" data-slide-id="source-to-graph">
+      <p class="slide-kicker">41 / Close</p>
+      <h2>Source-to-Graph 흐름은 재현 가능한 구현 경로.</h2>
+      <div class="slide-body diagram-first">
+        <div class="code-panel"><pre><code>Source files
+  -> metadata contract
+  -> importer validation
+  -> Neo4j nodes and relationships
+  -> runtime retrieval gates
+  -> prompt title/text context
+  -> NPC response with memory context
+  -> Admin review and adjustment</code></pre></div>
+        <ul class="detail-list compact">
+          <li><b>재현성</b><span>source file과 metadata contract가 고정되어 같은 importer로 graph 구조를 다시 만들 수 있다.</span></li>
+          <li><b>검증성</b><span>Neo4j Browser는 적재 관계를, Streamlit debug는 검색과 prompt 조립을, Admin은 운영 상태를 확인한다.</span></li>
+          <li><b>확장성</b><span>새 NPC, 퀘스트, 컨셉 데이터는 동일한 metadata와 relationship 규칙을 따라 추가된다.</span></li>
+        </ul>
       </div>
+      <div class="explain"><p>source file에서 시작한 데이터는 metadata contract와 importer validation을 거쳐 Neo4j relationship으로 연결된다. runtime retrieval은 이 관계와 속성 gate를 사용해 prompt title/text context를 만들고, NPC 응답은 memory context와 함께 조립된다. Admin 화면은 memory, quest, concept data를 운영 표면으로 분리해 같은 흐름을 검증하고 확장할 수 있게 한다.</p></div>
     </section>
   </main>
 
-  <script type="application/json" id="contractText">{"filter":"k.hint_level <= $allowed_hint_level"}</script>
   <script src="deck.js"></script>
 </body>
 </html>

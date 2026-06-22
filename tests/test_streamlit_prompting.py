@@ -143,7 +143,8 @@ class StreamlitPromptingTest(unittest.TestCase):
         self.assertGreaterEqual(estimate_context_units(turns), 10)
 
     def test_estimate_prompt_units_counts_full_prompt_text(self):
-        self.assertEqual(len("전체 프롬프트 abc"), estimate_prompt_units("전체 프롬프트 abc"))
+        self.assertEqual(len("abc"), estimate_prompt_units("abc"))
+        self.assertGreater(estimate_prompt_units("전체 프롬프트"), len("전체 프롬프트"))
 
     def test_string_list_filters_to_strings(self):
         self.assertEqual(string_list(["a", 1, None, "b"]), ["a", "b"])

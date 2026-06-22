@@ -21,7 +21,7 @@ docs/presentation/                발표용 HTML deck
 
 보강 자료는 별도 `output/expanded` 폴더가 아니라 기존 `rsc/data/quests/*.yaml`의 `story_expansion`에 통합합니다. `output/`은 재생성 가능한 보고서와 Neo4j import 산출물만 둡니다.
 
-Streamlit 런타임은 `src/streamlit/test_app.py`의 메인 NPC 채팅 앱과 `src/streamlit/pages/admin.py`의 별도 Admin 페이지로 나뉩니다. NPC 선택은 각 NPC 메타데이터에 맞춰 `player_role`과 `quest_id`를 자동 동기화합니다. 사이드바에는 `Debug: Retrieved Chunks`, `Debug: Prompt`, `Debug: Runtime` popover와 NPC별 세션 메모리 요약이 표시됩니다. 대화 메모리는 세션 안에서만 NPC별로 유지하며, 프롬프트 컨텍스트는 `4096 * 0.9` 토큰 기준을 넘으면 최근 턴을 요약해 압축합니다.
+Streamlit 런타임은 `src/streamlit/test_app.py`의 메인 NPC 채팅 앱과 `src/streamlit/pages/admin.py`의 별도 Admin 페이지로 나뉩니다. NPC 선택은 각 NPC 메타데이터에 맞춰 `player_role`과 `quest_id`를 자동 동기화합니다. 사이드바에는 `Debug: Retrieved Chunks`, `Debug: Prompt`, `Debug: Runtime` popover와 NPC별 세션 메모리 요약이 표시됩니다. 대화 메모리는 세션 안에서만 NPC별로 유지하며, 프롬프트 컨텍스트는 전체 컨텍스트에서 `VLLM_MAX_RESPONSE_TOKENS = 512`를 먼저 예약한 뒤 남은 `MAX_PROMPT_CONTEXT_UNITS`에 `MEMORY_COMPACTION_RATIO = 0.9`를 적용한 기준을 넘으면 최근 턴을 요약해 압축합니다.
 
 Admin 페이지는 `Memory Admin`, `Quest Admin`, `Concept Story Admin` 탭을 제공합니다. `Concept Story Admin`에서는 `ConceptStory` 노드 확인과 `MERGE` 적재 폼을 사용합니다.
 

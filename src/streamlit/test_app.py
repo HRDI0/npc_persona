@@ -46,6 +46,8 @@ DEFAULT_QUEST_STATE = "in_progress"
 DEFAULT_HINT_LEVEL = 1
 DEFAULT_MAX_MEMORY_COUNT = 40
 MAX_CONTEXT_TOKENS = 4096
+VLLM_MAX_RESPONSE_TOKENS = 512
+MAX_PROMPT_CONTEXT_UNITS = MAX_CONTEXT_TOKENS - VLLM_MAX_RESPONSE_TOKENS
 MEMORY_COMPACTION_RATIO = 0.9
 
 NPC_METADATA = {
@@ -257,7 +259,7 @@ def compact_npc_memory_if_needed(npc_id: str) -> None:
 
 
 def compact_npc_memory_for_prompt_if_needed(npc_id: str, prompt: str) -> bool:
-    threshold = int(MAX_CONTEXT_TOKENS * MEMORY_COMPACTION_RATIO)
+    threshold = int(MAX_PROMPT_CONTEXT_UNITS * MEMORY_COMPACTION_RATIO)
     if estimate_prompt_units(prompt) < threshold:
         return False
 
@@ -476,8 +478,6 @@ def get_allowed_chunks(
 def build_interaction_log(
     user_message: str,
     response_text: str,
-    chunks: list[dict[str, object]],
-    prompt: str,
 ) -> dict[str, object]:
     return {
         "model": MODEL_NAME,
@@ -491,10 +491,6 @@ def build_interaction_log(
         },
         "input": user_message,
         "output": response_text,
-        "debug": {
-            "retrieved_chunks": chunks,
-            "prompt": prompt,
-        },
     }
 
 
@@ -512,6 +508,14 @@ def normalize_stream_response(response: object) -> str:
     return str(response)
 
 
+class VllmRequestError(Exception):
+    def __init__(self, status_code: int | str, response_body: str, display_message: str) -> None:
+        super().__init__(f"vLLM HTTP {status_code}")
+        self.status_code: int | str = status_code
+        self.response_body: str = response_body
+        self.display_message: str = display_message
+
+
 # -----------------------------
 # LLM: vLLM OpenAI-compatible streaming
 # -----------------------------
@@ -527,7 +531,7 @@ def stream_gemma_response(prompt: str):
         ],
         "temperature": 0.7,
         "top_p": 0.9,
-        "max_tokens": 512,
+        "max_tokens": VLLM_MAX_RESPONSE_TOKENS,
         "stream": True,
     }
 
@@ -562,21 +566,42 @@ def stream_gemma_response(prompt: str):
                     yield content
 
     except requests.exceptions.ConnectionError:
-        yield (
-            "\n\n[vLLM 서버가 아직 준비 중] vLLM 컨테이너가 모델 로딩을 끝내고 "
-            "`/health` 응답을 낼 때까지 기다린 뒤 다시 시도하세요. "
-            "로컬 검증 스택은 `docker compose --env-file .env.design-test.example "
-            "-f compose.design-test.yaml --profile gpu up -d neo4j vllm streamlit`로 vLLM을 함께 띄웁니다."
+        raise VllmRequestError(
+            status_code="connection_error",
+            response_body="",
+            display_message=(
+                "[vLLM 서버가 아직 준비 중] vLLM 컨테이너가 모델 로딩을 끝내고 "
+                "`/health` 응답을 낼 때까지 기다린 뒤 다시 시도하세요. "
+                "로컬 검증 스택은 `docker compose --env-file .env.design-test.example "
+                "-f compose.design-test.yaml --profile gpu up -d neo4j vllm streamlit`로 vLLM을 함께 띄웁니다."
+            ),
         )
     except requests.exceptions.Timeout:
-        yield "\n\n[vLLM 호출 오류] vLLM 응답 시간이 초과되었습니다. 잠시 뒤 다시 시도하세요."
+        raise VllmRequestError(
+            status_code="timeout",
+            response_body="",
+            display_message="[vLLM 호출 오류] vLLM 응답 시간이 초과되었습니다. 잠시 뒤 다시 시도하세요.",
+        )
     except requests.exceptions.HTTPError as e:
         status_code = e.response.status_code if e.response is not None else "unknown"
-        yield f"\n\n[vLLM 호출 오류] vLLM 서버가 HTTP {status_code}를 반환했습니다."
+        response_body = e.response.text if e.response is not None else ""
+        raise VllmRequestError(
+            status_code=status_code,
+            response_body=response_body,
+            display_message=f"[vLLM 호출 오류] vLLM 서버가 HTTP {status_code}를 반환했습니다.",
+        ) from e
     except requests.exceptions.RequestException:
-        yield "\n\n[vLLM 호출 오류] vLLM 서버 호출 중 네트워크 오류가 발생했습니다."
+        raise VllmRequestError(
+            status_code="request_error",
+            response_body="",
+            display_message="[vLLM 호출 오류] vLLM 서버 호출 중 네트워크 오류가 발생했습니다.",
+        )
     except json.JSONDecodeError:
-        yield "\n\n[vLLM 호출 오류] vLLM 스트리밍 응답을 해석하지 못했습니다."
+        raise VllmRequestError(
+            status_code="invalid_stream",
+            response_body="",
+            display_message="[vLLM 호출 오류] vLLM 스트리밍 응답을 해석하지 못했습니다.",
+        )
 
 
 # -----------------------------
@@ -653,6 +678,7 @@ if user_message := st.chat_input("메세지를 입력하세요"):
         st.caption("모험가")
         st.markdown(user_message)
 
+    prompt = ""
     try:
         npc = get_npc_profile(st.session_state.npc_id)
         npc_name = str(npc.get("name") or NPC_NAMES.get(st.session_state.npc_id, st.session_state.npc_id))
@@ -672,6 +698,7 @@ if user_message := st.chat_input("메세지를 입력하세요"):
                 "npc_id": st.session_state.npc_id,
                 "quest_id": st.session_state.quest_id,
                 "chunk_count": len(chunks),
+                "retrieved_chunks": chunks,
             },
         )
 
@@ -700,7 +727,8 @@ if user_message := st.chat_input("메세지를 입력하세요"):
                 "event": "prompt_built",
                 "npc_id": st.session_state.npc_id,
                 "quest_id": st.session_state.quest_id,
-                "prompt_units": len(prompt),
+                "prompt_units": estimate_prompt_units(prompt),
+                "prompt": prompt,
             },
         )
 
@@ -729,10 +757,23 @@ if user_message := st.chat_input("메세지를 입력하세요"):
             build_interaction_log(
                 user_message=user_message,
                 response_text=response_text,
-                chunks=chunks,
-                prompt=prompt,
             )
         )
+
+    except VllmRequestError as e:
+        append_feature_log(
+            "prompt",
+            {
+                "event": "vllm_http_error",
+                "npc_id": st.session_state.npc_id,
+                "quest_id": st.session_state.quest_id,
+                "status_code": e.status_code,
+                "response_body": e.response_body[:2000],
+                "prompt_units": estimate_prompt_units(prompt),
+            },
+        )
+        with st.chat_message("assistant"):
+            st.error(e.display_message)
 
     except Exception as e:
         error_message = f"오류 발생: {e}"

@@ -24,12 +24,14 @@
 
 ```powershell
 Copy-Item .env.design-test.example .env.design-test
-$env:VLLM_MODEL="google/gemma-4-E4B-it"
-$env:LOCAL_MODEL_DIR="./models/google-gemma-4-E4B-it"
+$env:VLLM_MODEL="google/gemma-4-E2B-it"
+$env:LOCAL_MODEL_DIR="./models/google-gemma-4-E2B-it"
 $env:VLLM_GPU_MEMORY_UTILIZATION="0.9"
 $env:VLLM_MAX_MODEL_LEN="4096"
 .\scripts\download_model.ps1
 ```
+
+최신 실제 증거 캡처는 설계 검증 포트가 아니라 main Compose 포트에서 수행했다. Streamlit은 `127.0.0.1:8501`, vLLM은 `127.0.0.1:8000/v1/models`에서 확인했고, served model은 `google/gemma-4-E2B-it`, `max_model_len=4096`, `VLLM_GPU_MEMORY_UTILIZATION=0.8`이었다. `.env.design-test.example`은 여전히 `0.9`를 기본으로 둘 수 있으므로 같은 조건을 재현하려면 실행 환경에서 `VLLM_GPU_MEMORY_UTILIZATION=0.8`로 override한다.
 
 접근 권한이 필요한 경우 같은 PowerShell 세션에 `HF_TOKEN`을 먼저 설정한다.
 
@@ -38,7 +40,7 @@ $env:HF_TOKEN="hf_..."
 .\scripts\download_model.ps1
 ```
 
-다운로드 결과는 `models/google-gemma-4-E4B-it`에 둔다. `models/`는 git과 Docker build context에서 제외한다.
+다운로드 결과는 `models/google-gemma-4-E2B-it`에 둔다. `models/`는 git과 Docker build context에서 제외한다.
 
 ## Windows Docker Desktop 설계 검증 실행
 
