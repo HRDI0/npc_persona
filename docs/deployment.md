@@ -98,7 +98,7 @@ max_model_len: 4096
 gpu_memory_utilization: 0.9
 ```
 
-최근 로컬 검증 캡처는 production default 변경이 아니라 증거 수집용 override다. main Compose 포트 `8501`과 `8000`에서 `google/gemma-4-E2B-it`, `max_model_len=4096`, `VLLM_GPU_MEMORY_UTILIZATION=0.8`로 확인했다. 서버 기본 설정은 위의 `google/gemma-4-E4B-it`, `gpu_memory_utilization: 0.9`를 유지한다.
+최근 로컬 검증 캡처는 production default 변경이 아니라 증거 수집용 override다. main Compose 포트 `8501`과 `8000`에서 `google/gemma-4-E4B-it`, `max_model_len=4096`, `VLLM_GPU_MEMORY_UTILIZATION=0.8`로 확인했다. 서버 기본 설정은 위의 `google/gemma-4-E4B-it`, `gpu_memory_utilization: 0.9`를 유지한다.
 
 vLLM 컨테이너는 Compose에서 OpenAI 호환 API를 제공하는 용도다. GPU 메모리와 모델 권한은 서버 환경에 따라 달라지므로, 외부 vLLM을 이미 운영 중이면 `VLLM_URL`만 그 주소로 맞추고 Streamlit/Neo4j 스택과 분리해도 된다.
 

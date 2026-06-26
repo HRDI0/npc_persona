@@ -1001,7 +1001,7 @@ ORDER BY k.chunk_id;
 Invoke-RestMethod -Uri "http://localhost:8000/v1/models"
 $env:MODEL_NAME="google/gemma-4-E4B-it"
 # 또는 최근 E2B 검증 런타임처럼 서빙 중인 모델에 맞춘다.
-$env:MODEL_NAME="google/gemma-4-E2B-it"
+$env:MODEL_NAME="google/gemma-4-E4B-it"
 ```
 
 ### 14.4 민감 정보가 너무 빨리 나온다

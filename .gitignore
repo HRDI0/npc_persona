@@ -1,3 +1,4 @@
+.*/
 .env
 .env.local
 .env.design-test
@@ -24,5 +25,5 @@ output/
 .affine/
 affine/
 .study/
-tests/
+test_script/
 test-results/
