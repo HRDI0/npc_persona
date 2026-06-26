@@ -22,3 +22,7 @@ output/playwright/
 output/
 .private/
 .affine/
+affine/
+.study/
+tests/
+test-results/

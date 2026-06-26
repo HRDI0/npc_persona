@@ -57,7 +57,7 @@ NEO4J_PASSWORD=<your-password>
 NEO4J_DATABASE=neo4j
 ```
 
-`NEO4J_PASSWORD`가 없으면 적재를 중단한다. 비밀번호는 README나 코드에 직접 쓰지 않는다.
+`NEO4J_PASSWORD`가 없으면 적재를 중단한다. 실제 운영 비밀번호는 README나 코드에 직접 쓰지 않는다. 문서와 Compose에 보이는 `admin2026`은 로컬 개발 기본 예시이며, 서버에서는 추적되지 않는 `.env`나 시스템 환경변수로 바꾼다.
 
 ## 3. 원천 `rsc/data`를 바로 적재하는 경로
 

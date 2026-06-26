@@ -6,6 +6,8 @@
 
 PowerShell에서 환경변수를 명시한다.
 
+아래 `admin2026` 값은 로컬 개발 기본 예시다. 실제 서버 비밀번호는 커밋하지 않고 `.env`나 시스템 환경변수에만 둔다.
+
 ```powershell
 $env:NEO4J_URI="bolt://localhost:7687"
 $env:NEO4J_USER="neo4j"
@@ -121,6 +123,8 @@ Neo4j chunk 적재 상태를 확인한다.
 ```bash
 docker compose exec neo4j cypher-shell -u neo4j -p admin2026 "MATCH (n:NPC) OPTIONAL MATCH (n)-[:KNOWS]->(k:KnowledgeChunk) RETURN n.npc_id AS npc, n.name AS name, count(k) AS chunks ORDER BY npc"
 ```
+
+서버에서 실제 비밀번호를 `.env`로 관리한다면 `admin2026` 대신 해당 환경의 `NEO4J_PASSWORD` 값을 사용한다.
 
 placeholder clue가 없어야 한다.
 

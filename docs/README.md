@@ -17,6 +17,7 @@
 | 데이터 증강 결과 | [DATA_AUGMENTATION_REPORT.md](DATA_AUGMENTATION_REPORT.md) | KnowledgeChunk 26개로 늘어난 내역과 검증 기준을 확인할 때 |
 | 발표 deck | [presentation/index.html](presentation/index.html) | 발표용 HTML deck 근거와 실제 캡처 흐름을 맞출 때 |
 | NPC 확장 가이드 | [MVP_NPC_EXPANSION_GUIDE.md](MVP_NPC_EXPANSION_GUIDE.md) | 새 NPC와 chunk를 추가하거나 legacy 설계 맥락을 확인할 때 |
+| 학습 커리큘럼 | [.study/README.md](.study/README.md) | 현재 MVP부터 운영 practice extension까지 순서대로 공부할 때 |
 | 계획 문서 | [plans/](plans/) | 아직 구현 전이거나 설계 중인 작업의 의도와 범위를 확인할 때 |
 
 ## 깊은 문서를 유지하는 기준
